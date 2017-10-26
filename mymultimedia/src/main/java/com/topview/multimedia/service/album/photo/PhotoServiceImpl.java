@@ -1,0 +1,142 @@
+package com.topview.multimedia.service.album.photo;
+
+import java.util.List;
+
+import javax.annotation.Resource;
+
+import com.topview.multimedia.dao.MultimediaPhotoMapper;
+import com.topview.multimedia.vo.PhotoInfo;
+import com.topview.multimedia.vo.result.PhotoInfoResult;
+
+public class PhotoServiceImpl implements PhotoService {
+
+	List<PhotoProcess> photoSaveProcesses;
+	List<PhotoProcess> photoDeleteProcesses;
+	List<PhotoProcess> photoFindAllProcesses;
+	List<PhotoProcess> photoFindProcesses;
+	List<PhotoProcess> photoFindNoPagerProcesses;
+	List<PhotoProcess> photoUpdateProcesses;
+	List<PhotoProcess> photoUpdateNameProcesses;
+	List<PhotoProcess> photoUpdateSortAndDescriptionProcesses;
+	@Resource
+	private MultimediaPhotoMapper multimediaPhotoMapper;
+	
+	public PhotoInfoResult photoSave(PhotoInfo photo) {
+		return doProcess(photo, photoSaveProcesses);
+	}
+
+	public PhotoInfoResult photoDelete(PhotoInfo photo) {
+		return doProcess(photo, photoDeleteProcesses);
+	}
+
+	public PhotoInfoResult photoFindAll(PhotoInfo photo) {
+		return doProcess(photo, photoFindAllProcesses);
+	}
+	public PhotoInfoResult photoFind(PhotoInfo photo) {
+		return doProcess(photo, photoFindProcesses);
+	}
+	public PhotoInfoResult photoFindNoPager(PhotoInfo photo) {
+		return doProcess(photo, photoFindNoPagerProcesses);
+	}
+
+	public PhotoInfoResult photoUpdate(PhotoInfo photo) {
+		return doProcess(photo, photoUpdateProcesses);
+	}
+
+	public List<PhotoProcess> getPhotoUpdateSortAndDescriptionProcesses() {
+		return photoUpdateSortAndDescriptionProcesses;
+	}
+
+	public void setPhotoUpdateSortAndDescriptionProcesses(List<PhotoProcess> photoUpdateSortAndDescriptionProcesses) {
+		this.photoUpdateSortAndDescriptionProcesses = photoUpdateSortAndDescriptionProcesses;
+	}
+	
+
+	public PhotoInfoResult photoUpdateName(PhotoInfo photo) {
+		return doProcess(photo, photoUpdateNameProcesses);
+	}
+	
+	public PhotoInfoResult photoUpdateSortAndDescription(PhotoInfo photo) {
+		return doProcess(photo, photoUpdateSortAndDescriptionProcesses);
+	}
+	
+	public List<PhotoProcess> getPhotoUpdateNameProcesses() {
+		return photoUpdateNameProcesses;
+	}
+
+	public void setPhotoUpdateNameProcesses(
+			List<PhotoProcess> photoUpdateNameProcesses) {
+		this.photoUpdateNameProcesses = photoUpdateNameProcesses;
+	}
+
+	public List<PhotoProcess> getPhotoSaveProcesses() {
+		return photoSaveProcesses;
+	}
+
+	public void setPhotoSaveProcesses(List<PhotoProcess> photoSaveProcesses) {
+		this.photoSaveProcesses = photoSaveProcesses;
+	}
+
+	public List<PhotoProcess> getPhotoDeleteProcesses() {
+		return photoDeleteProcesses;
+	}
+
+	public void setPhotoDeleteProcesses(List<PhotoProcess> photoDeleteProcesses) {
+		this.photoDeleteProcesses = photoDeleteProcesses;
+	}
+
+	public List<PhotoProcess> getPhotoFindAllProcesses() {
+		return photoFindAllProcesses;
+	}
+
+	public void setPhotoFindAllProcesses(List<PhotoProcess> photoFindAllProcesses) {
+		this.photoFindAllProcesses = photoFindAllProcesses;
+	}
+
+	public List<PhotoProcess> getPhotoUpdateProcesses() {
+		return photoUpdateProcesses;
+	}
+
+	public void setPhotoUpdateProcesses(List<PhotoProcess> photoUpdateProcesses) {
+		this.photoUpdateProcesses = photoUpdateProcesses;
+	}
+
+	public List<PhotoProcess> getPhotoFindProcesses() {
+		return photoFindProcesses;
+	}
+
+	public void setPhotoFindProcesses(List<PhotoProcess> photoFindProcesses) {
+		this.photoFindProcesses = photoFindProcesses;
+	}
+
+	public List<PhotoProcess> getPhotoFindNoPagerProcesses() {
+		return photoFindNoPagerProcesses;
+	}
+
+	public void setPhotoFindNoPagerProcesses(
+			List<PhotoProcess> photoFindNoPagerProcesses) {
+		this.photoFindNoPagerProcesses = photoFindNoPagerProcesses;
+	}
+
+	public PhotoInfoResult doProcess(PhotoInfo photo,
+			List<PhotoProcess> processes) {
+		PhotoProcessContext context = new PhotoProcessContext();
+		PhotoInfoResult result = new PhotoInfoResult();
+		context.setResult(result);
+		context.setInfo(photo);
+		for (PhotoProcess process : processes) {
+			if (!process.doProcess(context)) {
+				break;
+			}
+		}
+		return context.getResult();
+	}
+
+	public int selectCount(String albumId) {
+		return multimediaPhotoMapper.selectCount(albumId);
+	}
+
+
+
+
+}

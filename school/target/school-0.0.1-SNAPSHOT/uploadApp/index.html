@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<!-- 用于指定用户是否可以缩放web页面 -->
+<title>发布新版本</title>
+<link rel="stylesheet" href="index.css">
+<!-- 引入css样式 -->
+<script src="../resources/js/jquery.min.js"></script>
+<!-- 引入jquery库，min指压缩过的没有缩进换行等格式的jquery库 -->
+</head>
+<body>
+
+	<div id="header">
+		<p>
+			安卓上传须知: 华景上传的apk名称必须为<em> huajingYouXiaoYun_Socket_New.apk</em>,
+			玉树的apk为<em>yushuYouXiaoYun_Socket_New.apk</em>
+			即在YouXiaoYun_Socket_New前加上学校的名称的拼音
+		</p>
+	</div>
+
+	<div class="showSchools">
+		<table>
+			<thead>
+				<tr><th colspan="2">目前已有学校</th></tr>
+				<tr>
+					<th>学校id</th>
+					<th>学校名称</th>
+				</tr>
+			</thead>
+			<tbody class="tbody">
+			</tbody>
+		</table>
+	</div>
+
+	<div id="body">
+		<form action="../version/uploadNewVersion.action" method="POST"
+			enctype="multipart/form-data">
+			<p class="inline">
+				<!-- select标签定义了一个下拉框,其每一子项为option-->
+				<label>选择学校:</label> <select name="schoolId"></select>
+			</p>
+			<div class="inline device">
+				<span> <!--<label>标签为input元素定义标注，并且其for属性应当与相关元素的id属性相同,作用是利用for属性将label绑定到另外一个元素上  -->
+					<label>android</label><input type="radio" id="android"
+					name="device" value="1">
+				</span> <span> <label>IOS</label><input type="radio" id="IOS"
+					name="device" value="2">
+				</span>
+			</div>
+
+			<p class="inline">
+				<label>版本号: </label><input type="text" name="version" id="version">
+			</p>
+
+			<p class="block">
+				<label id="updateDetail">更新细节:</label>
+				<textarea name="detail" id="detail"></textarea>
+			</p>
+			<p class="block">
+				<label>描述:</label>
+				<textarea name="description"></textarea>
+			</p>
+			<p class="block">
+				<label>备注:</label>
+				<textarea name="comment"></textarea>
+			</p>
+
+			<div class="block uploadFile">
+				<input type="file" name="file">
+<br />
+				<br />提示：iOS上传两个文件请先上传ipa,
+				再上传manifest.plist
+
+<!-- 				<p class="url">
+					<label>网址: </label> <input type="text" name="url" placeholder="url" id="url">
+				</p> -->
+
+			</div>
+			<button id="upload">确认上传</button>
+		</form>
+	</div>
+	<script src="index.js"></script>
+	<!-- 引入js文件 -->
+</body>
+</html>

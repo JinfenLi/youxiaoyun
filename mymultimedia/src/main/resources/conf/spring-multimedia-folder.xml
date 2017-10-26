@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+		http://www.springframework.org/schema/beans/spring-beans-3.1.xsd 
+		http://www.springframework.org/schema/context 
+		http://www.springframework.org/schema/context/spring-context-3.1.xsd">
+
+	<bean id="folderServiceImpl" class="com.topview.multimedia.service.folder.FolderServiceImpl">
+		<property name="folderCreateProcesses">
+			<list>
+				<ref bean="folderCreateProcess" />
+			</list>
+		</property>
+		<property name="folderUpdateProcesses">
+			<list>
+				<ref bean="folderUpdateProcess" />
+			</list>
+		</property>
+		<property name="folderDeleteProcesses">
+			<list>
+				<ref bean="folderDeleteProcess" />
+			</list>
+		</property>
+		<property name="folderFindAllProcesses">
+			<list>
+				<ref bean="folderFindAllProcess" />
+			</list>
+		</property>
+		<property name="folderFindProcesses">
+			<list>
+				<ref bean="folderFindProcess" />
+			</list>
+		</property>
+		
+	</bean>
+
+</beans>

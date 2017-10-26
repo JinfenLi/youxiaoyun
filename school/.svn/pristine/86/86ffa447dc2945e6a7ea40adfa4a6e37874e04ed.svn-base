@@ -1,0 +1,58 @@
+package com.topview.school.controller.exam.score;
+
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.List;
+
+import com.topview.school.po.Exam;
+
+public class Test {
+	public static void main(String[] args) {
+		List<Exam> list = new ArrayList<Exam>();
+		Calendar time=Calendar.getInstance();
+		
+		Exam e = new Exam();
+		time.set(2016, 11, 16);
+		e.setExam_time(time.getTime());
+		e.setId("1");
+		e.settScCurriculaVariableId("1");
+		e.setType(1);
+		e.setName("1号考试");
+		list.add(e);
+		
+		Exam e4 = new Exam();
+		time.set(2016, 11, 19);
+		e4.setExam_time(time.getTime());
+		e4.setId("4");
+		e4.settScCurriculaVariableId("4");
+		e4.setType(4);
+		e4.setName("4号考试");
+		list.add(e4);
+		
+		Exam e3 = new Exam();
+		time.set(2016, 11, 18);
+		e3.setExam_time(time.getTime());
+		e3.setId("3");
+		e3.settScCurriculaVariableId("3");
+		e3.setType(3);
+		e3.setName("3号考试");
+		list.add(e3);
+		
+		Exam e2 = new Exam();
+		time.set(2016, 11, 17);
+		e2.setExam_time(time.getTime());
+		e2.setId("2");
+		e2.settScCurriculaVariableId("2");
+		e2.setType(2);
+		e2.setName("2号考试");
+		list.add(e2);
+		
+		
+		Collections.sort(list);
+		
+		for(Exam exam:list) {
+			System.out.println(exam.getName());
+		}
+	}
+}

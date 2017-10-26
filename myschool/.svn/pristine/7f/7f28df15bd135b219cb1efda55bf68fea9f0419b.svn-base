@@ -1,0 +1,184 @@
+package com.topview.school.vo.User;
+
+import java.util.Date;
+
+public class StudentAndParentInfo {
+
+	private String studentName; //学生姓名
+	private String studentGender; //学生性别
+	private String studentIDCard; //学生卡号
+	private String studentAddress; //学生地址
+	private String studentPhone; //家庭电话
+	private String emergencyPhone; // 紧急电话
+	private Date birthday; // 出生年月日,excel解析时使用
+	private String studentPassword;
+
+	//*********修改个人信息附加字段*************
+	private String feteday; //出生年月日,修改资料时使用
+	private String studentId; //学生id
+	private String parentId; //家长id
+	//***************************
+	
+	private String parentName;
+	private String parentGender;
+	private String parentPhone;
+	private String parentPassword;
+
+	private String parent2Name;
+	private String parent2Gender;
+	private String parent2Phone;
+	private String parent2Password;
+
+	public String getStudentName() {
+		return studentName;
+	}
+
+	public void setStudentName(String studentName) {
+		this.studentName = studentName;
+	}
+
+	public String getStudentGender() {
+		return studentGender;
+	}
+
+	public void setStudentGender(String studentGender) {
+		this.studentGender = studentGender;
+	}
+
+	public String getStudentIDCard() {
+		return studentIDCard;
+	}
+
+	public void setStudentIDCard(String studentIDCard) {
+		this.studentIDCard = studentIDCard;
+	}
+
+	public String getStudentAddress() {
+		return studentAddress;
+	}
+
+	public void setStudentAddress(String studentAddress) {
+		this.studentAddress = studentAddress;
+	}
+
+	public String getStudentPhone() {
+		return studentPhone;
+	}
+
+	public void setStudentPhone(String studentPhone) {
+		this.studentPhone = studentPhone;
+	}
+
+	public String getStudentPassword() {
+		return studentPassword;
+	}
+
+	public void setStudentPassword(String studentPassword) {
+		this.studentPassword = studentPassword;
+	}
+
+	public String getParentName() {
+		return parentName;
+	}
+
+	public void setParentName(String parentName) {
+		this.parentName = parentName;
+	}
+
+	public String getParentGender() {
+		return parentGender;
+	}
+
+	public void setParentGender(String parentGender) {
+		this.parentGender = parentGender;
+	}
+
+	public String getParentPhone() {
+		return parentPhone;
+	}
+
+	public String getEmergencyPhone() {
+		return emergencyPhone;
+	}
+
+	public void setEmergencyPhone(String emergencyPhone) {
+		this.emergencyPhone = emergencyPhone;
+	}
+
+	public void setParentPhone(String parentPhone) {
+		this.parentPhone = parentPhone;
+	}
+
+	public String getParentPassword() {
+		return parentPassword;
+	}
+
+	public String getStudentId() {
+		return studentId;
+	}
+
+	public void setStudentId(String studentId) {
+		this.studentId = studentId;
+	}
+
+	public String getParentId() {
+		return parentId;
+	}
+
+	public void setParentId(String parentId) {
+		this.parentId = parentId;
+	}
+
+	public String getFeteday() {
+		return feteday;
+	}
+
+	public void setFeteday(String feteday) {
+		this.feteday = feteday;
+	}
+
+	public Date getBirthday() {
+		return birthday;
+	}
+
+	public void setBirthday(Date birthday) {
+		this.birthday = birthday;
+	}
+
+	public void setParentPassword(String parentPassword) {
+		this.parentPassword = parentPassword;
+	}
+
+	public String getParent2Name() {
+		return parent2Name;
+	}
+
+	public void setParent2Name(String parent2Name) {
+		this.parent2Name = parent2Name;
+	}
+
+	public String getParent2Gender() {
+		return parent2Gender;
+	}
+
+	public void setParent2Gender(String parent2Gender) {
+		this.parent2Gender = parent2Gender;
+	}
+
+	public String getParent2Phone() {
+		return parent2Phone;
+	}
+
+	public void setParent2Phone(String parent2Phone) {
+		this.parent2Phone = parent2Phone;
+	}
+
+	public String getParent2Password() {
+		return parent2Password;
+	}
+
+	public void setParent2Password(String parent2Password) {
+		this.parent2Password = parent2Password;
+	}
+
+}

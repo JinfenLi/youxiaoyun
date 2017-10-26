@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE generatorConfiguration PUBLIC "-//mybatis.org//DTD MyBatis Generator Configuration 1.0//EN" "http://mybatis.org/dtd/mybatis-generator-config_1_0.dtd" >
+<generatorConfiguration>
+	<classPathEntry location="E:\Maven\mysql\mysql-connector-java\5.1.17\mysql-connector-java-5.1.17.jar" />
+	<context id="context1" targetRuntime="MyBatis3">
+		<jdbcConnection driverClass="com.mysql.jdbc.Driver"
+			connectionURL="jdbc:mysql://10.21.23.141:3306/newmultimedia" userId="root"
+			password="root">
+		</jdbcConnection>
+		<javaModelGenerator targetPackage="com.topview.multimedia.po"
+			targetProject="E:\dev\eclipse\luna workspace\multimedia\src\main\java" />
+
+		<sqlMapGenerator targetPackage="com.topview.multimedia.dao"
+			targetProject="E:\dev\eclipse\luna workspace\multimedia\src\main\resources" />
+
+		<javaClientGenerator targetPackage="com.topview.multimedia.dao"
+			targetProject="E:\dev\eclipse\luna workspace\multimedia\src\main\java"
+			type="XMLMAPPER" />
+
+		<table schema="root" tableName="t_mutimedia_album"
+			domainObjectName="MultimediaAlbum" enableCountByExample="false"
+			enableUpdateByExample="false" enableDeleteByExample="false"
+			enableSelectByExample="false" selectByExampleQueryId="false" />
+
+	</context>
+</generatorConfiguration>
+

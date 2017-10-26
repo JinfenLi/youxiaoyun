@@ -1,0 +1,62 @@
+/**
+ * 
+ * Author: ccDeng
+ * Contact: 173634610@qq.com
+ * Description: 超级管理员查看选择的学校的登陆情况的控制器
+ * 
+ */
+Ext.define("School.controller.area.SchoolLogin", {
+	extend: "Ext.app.Controller",
+	views: [
+		"area.SchoolLogin"
+	],
+	init: function(application) {
+	
+		this.control({
+			//点击进入查看班级登陆情况
+			"schoollogin actioncolumn": {
+				itemclick: function(grid, rowIndex, colIndex) {
+					this.openClasses(grid, rowIndex, colIndex);
+				}
+			},
+
+			//年级选择的change事件
+			"schoollogin toolbar combobox#gradeselect": {
+				change: function(combo, newValue, oldValue, eOpts) {
+					this.loadClasses(newValue);
+				}
+			}
+			//页面渲染后，是下拉框选择当前用户的的默认班级
+
+		});
+	},
+
+	//更新班级
+	loadClasses: function(newValue) {
+		var grid = Ext.ComponentQuery.query("schoollogin")[0],
+			store = grid.getStore();
+		store.load();
+	},
+
+	//打开班级
+	openClasses: function(grid, rowIndex, colIndex) {
+		var classId = grid.getStore().getAt(rowIndex).get('id'),
+			name = grid.getStore().getAt(rowIndex).get('name'),
+			mainPanel = Ext.ComponentQuery.query("mainpanel")[0],
+			title = '班级登陆情况',
+			xtype = "classlogin",
+			examStore = grid.getStore(),
+			scorePanel = {};
+
+			//如果本来就有面板
+			School.util.AddTab.addTab(mainPanel, title, xtype, '', 'classlogin');
+    	var classlogin = Ext.ComponentQuery.query("#classlogin")[0];
+
+			//将查看班级面板添加到mainPanel
+			classlogin.getStore().load({
+				params: {
+					classId: classId
+				}
+			});
+	}
+});

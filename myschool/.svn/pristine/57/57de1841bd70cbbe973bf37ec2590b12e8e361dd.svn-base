@@ -1,0 +1,201 @@
+package com.topview.school.service.school.user;
+
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+
+import org.apache.shiro.SecurityUtils;
+import org.apache.shiro.authc.UsernamePasswordToken;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.topview.school.controller.user.bean.LoginRequest;
+import com.topview.school.dao.school.ClazzMapper;
+import com.topview.school.dao.school.SemesterMapper;
+import com.topview.school.dao.user.ParentMapper;
+import com.topview.school.dao.user.StudentMapper;
+import com.topview.school.dao.user.TeacherMapper;
+import com.topview.school.po.Clazz;
+import com.topview.school.po.Parent;
+import com.topview.school.po.Student;
+import com.topview.school.po.Teacher;
+import com.topview.school.service.base.Context;
+import com.topview.school.service.base.Process;
+import com.topview.school.vo.User.ParentInfo;
+import com.topview.school.vo.User.TeacherInfo;
+import com.topview.school.vo.User.UserInfo;
+import com.topview.school.vo.User.enums.UserType;
+import com.topview.school.vo.school.SemesterVo;
+
+@Service
+public class UserFindProcess extends Process {
+
+	@Resource
+	private TeacherMapper teacherMapper;
+	@Resource
+	private ParentMapper parentMapper;
+	@Resource
+	private StudentMapper studentMapper;
+	@Resource
+	private SemesterMapper semesterMapper;
+	@Resource
+	private ClazzMapper clazzMapper;
+	@Autowired
+	private org.apache.shiro.mgt.SecurityManager manager;
+
+	@Override
+	public boolean doProcess(Context con) {
+
+		LoginRequest loginRequest = (LoginRequest) con.getRequest();	
+		Map<String, Object> params = new HashMap<String, Object>();
+		Map<String, Object> param = new HashMap<String, Object>();
+		boolean result = false;
+		UserInfo userInfo = new UserInfo();
+		String userType = loginRequest.getUserType();
+
+		userInfo.setAccount(loginRequest.getAccount());
+		userInfo.setPassword(loginRequest.getPassword());
+		param.put("params", params);
+		params.put("phone", loginRequest.getAccount());
+		params.put("mobile", loginRequest.getAccount());
+		params.put("password", loginRequest.getPassword());
+
+		if (userType != null && !"".equals(userType)) { // 如果有指定用户的身份类型,即切换登陆则进入该if体
+			if ("0".equals(userType)) { // 切换到教师身份登录
+				params.remove("mobile");
+				result = teacherLogin(param, loginRequest, userInfo);
+				loginRequest.getResult().put("success", result);
+				return result;
+			} else { // 切换到家长登陆
+				params.remove("phone");
+				result = parentLogin(param, loginRequest, userInfo);
+				loginRequest.getResult().put("success", result);
+				return result;
+			}
+		}
+		params.remove("mobile");
+		if (teacherLogin(param, loginRequest, userInfo)) {
+			loginRequest.getResult().put("success", true);
+			return true;
+		} else {
+			params.remove("phone");
+			params.put("mobile", loginRequest.getAccount());
+			if (parentLogin(param, loginRequest, userInfo)) {
+				loginRequest.getResult().put("success", true);
+				return true;
+			}
+			loginRequest.getResult().put("success", false);
+			return false;
+		}
+	}
+
+	@SuppressWarnings("deprecation")
+	private boolean teacherLogin(Map<String, Object> param,
+			LoginRequest loginRequest, UserInfo userInfo) {
+		Teacher teacher = teacherMapper.findByNameAndPassword(param);
+		if (teacher != null) {
+			userInfo.setPicUrl(teacher.getPicUrl());
+			userInfo.setUser_id(teacher.getId());
+			userInfo.setUser_name(teacher.getName());
+
+			TeacherInfo teacherInfo = new TeacherInfo();
+			if (teacher.gettScClassId() != null) {
+				teacherInfo.setHeadTeacher(true);
+				teacherInfo.setLeading_class(teacher.gettScClassId());
+			} else {
+				teacherInfo.setHeadTeacher(false);
+			}
+			// 根据当前学期id查询当前学期老师所教的所有班级
+			SemesterVo semesterVo = semesterMapper.getCurrentSemester(teacher
+					.gettScSchoolId());
+			List<Clazz> classes = clazzMapper.selectTeacherClazzs(
+					teacher.getId(), semesterVo.getId());
+			// 剔除属性值重复的对象
+			for (int i = 0; i < classes.size() - 1; i++) {
+				for (int j = classes.size() - 1; j > i; j--) {
+					if (classes.get(j).getId().equals(classes.get(i).getId())) {
+						classes.remove(j);
+					}
+				}
+			}
+
+			teacherInfo.setClasses(classes);
+			if (classes.size() > 0) {
+				userInfo.setClass_id(classes.get(0).getId());
+				userInfo.setClass_name(classes.get(0).getName());
+			}
+
+			userInfo.setSchool_id(teacher.gettScSchoolId());
+
+			userInfo.setUser_type(UserType.Teacher);// ordinal为1的时候代表登陆用户是老师
+			userInfo.setTeacher_info(teacherInfo);
+			loginRequest.setUserInfo(userInfo);
+			System.out.println(userInfo.getUser_id() + userInfo.getUser_name()
+					+ "登陆成功 : " + new Date().toLocaleString());
+
+			// 注册shiro session
+			SecurityUtils.setSecurityManager(manager);
+			org.apache.shiro.subject.Subject currentUser = SecurityUtils
+					.getSubject();
+
+			UsernamePasswordToken token = new UsernamePasswordToken(
+					loginRequest.getAccount(), loginRequest.getPassword());
+			token.setRememberMe(true);
+			currentUser.login(token);
+
+			return true;
+		}
+		return false;
+	}
+
+	@SuppressWarnings("deprecation")
+	private boolean parentLogin(Map<String, Object> param,
+			LoginRequest loginRequest, UserInfo userInfo) {
+		Parent parent = parentMapper.findByNameAndPassword(param);
+		if (parent != null) {
+
+			userInfo.setUser_id(parent.getId()); // 家长的id作为用户id
+			ParentInfo parentInfo = new ParentInfo();
+			List<Student> students = studentMapper.findByParentId(parent
+					.getId());
+			parentInfo.setStudents(students);
+			for (Student s : students) {
+				if (s.getId().equals(loginRequest.getStudent_id())) { // 如果移动端有传学生id过来即指定了要登陆哪个孩子的账号
+					parentInfo.setStudent_id(loginRequest.getStudent_id());
+					userInfo.setUser_name(s.getName());
+				}
+			}
+			// 否则默认第一个孩子
+			if (parentInfo.getStudent_id() == null
+					|| "".equals(parentInfo.getStudent_id())) {
+				parentInfo.setStudent_id(students.get(0).getId());// 默认为第一个孩子
+				userInfo.setUser_name(students.get(0).getName());
+			}
+
+			parentInfo.setParent_Name(parent.getName()); // 家长姓名
+			parentInfo.setStudent_count(students.size()); // 孩子数量
+
+			Clazz clazz = clazzMapper.findByStudentId(parentInfo
+					.getStudent_id());
+			userInfo.setClass_id(clazz.getId());
+			userInfo.setClass_name(clazz.getName());
+			userInfo.setGrade_id(clazz.gettScGradeId());
+			userInfo.setSchool_id(clazzMapper
+					.findSchoolIdByStudentId(parentInfo.getStudent_id()));
+
+			Student student = studentMapper.selectByPrimaryKey(parentInfo
+					.getStudent_id());
+			userInfo.setPicUrl(student.getPicurl());
+			userInfo.setUser_type(UserType.Parent);// ordinal为2的时候代表用户是家长
+			userInfo.setParent_info(parentInfo);
+			loginRequest.setUserInfo(userInfo);
+			System.out.println(userInfo.getUser_id() + userInfo.getUser_name()
+					+ "登陆成功: " + new Date().toLocaleString());
+			return true;
+		}
+		return false;
+	}
+}

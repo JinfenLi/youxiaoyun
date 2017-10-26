@@ -1,0 +1,107 @@
+package message;
+
+import org.junit.Test;
+
+import cn.jpush.api.JPushClient;
+import cn.jpush.api.common.resp.APIConnectionException;
+import cn.jpush.api.common.resp.APIRequestException;
+import cn.jpush.api.push.PushResult;
+import cn.jpush.api.push.model.Message;
+import cn.jpush.api.push.model.Platform;
+import cn.jpush.api.push.model.PushPayload;
+import cn.jpush.api.push.model.audience.Audience;
+import cn.jpush.api.push.model.notification.Notification;
+
+import com.topview.message.service.JPushServiceImpl;
+
+public class PushTest {
+
+	
+	@Test
+	public void testService(){
+		//JPushServiceImpl jPushService = new JPushServiceImpl();
+		//jPushService.sendMessageToAllias("3591d2229b214381b742f7ffa5c7e59f", "shenme qingkuang ", platform);
+		//jPushService.sendNoticeToAllias("3591d2229b214381b742f7ffa5c7e59f", "try send a message", 2);
+		//jPushService.sendNoticeToAllias("e9acef901b804f7c846dc16e21e40709", "是否能收到通知", 2);
+		//jPushService.sendNoticeToTag("06a1a063f4e146719f5a81d8dcb9ec22", "testst", "ios");
+		
+	}
+	
+	@Test
+	public void pushTest(){
+
+		String masterSecret = "fa5a2918b740c4eee2f244b5";
+		String appKey = "d9c499cdbd599cbfc3e6ade7";
+		JPushClient jpushClient = new JPushClient(masterSecret, appKey);
+
+        // For push, all you need do is to build PushPayload object.
+		
+        PushPayload payload = buildPushObject_android_tag_alertWithTitle();
+
+        try {
+            PushResult result = jpushClient.sendPush(payload);
+            System.out.println("Got result - " + result);
+
+        } catch (APIConnectionException e) {
+            // Connection error, should retry later
+        	System.out.println("Connection error, should retry later");
+
+        } catch (APIRequestException e) {
+            // Should review the error, and fix the request
+        	System.out.println("Should review the error, and fix the request");
+        	System.out.println("HTTP Status: " + e.getStatus());
+        	System.out.println("Error Code: " + e.getErrorCode());
+        	System.out.println("Error Message: " + e.getErrorMessage());
+        }
+	}
+	//群发通知给所有用户
+	 public static PushPayload buildPushObject_all_all_alert() {
+	        return PushPayload.alertAll("群发给该app下的所有注册用户");
+	    }
+	 
+	 
+	 //构建一个 群发给 tag下所有用户的推送对象
+	 public static PushPayload buildPushObject_android_tag_alertWithTitle() {
+	        return PushPayload.newBuilder()
+	                .setPlatform(Platform.all())
+	                .setAudience(Audience.tag("广州市天河区华景小学"))
+	                .setMessage(Message.newBuilder()
+	                		.setMsgContent("testSend")
+	                        .addExtra("from", "JPush")
+	                        .addExtra("111", "222")
+	                .build())
+	                .build();
+	    }
+	 
+	 //构建一个别名为alias的推送对象
+	 public static PushPayload buildPushObject_alias(String alias) {
+	        return PushPayload.newBuilder()
+	                .setPlatform(Platform.all())
+	                .setAudience(Audience.alias(alias))
+	                .setMessage(Message.newBuilder()
+	                		.setMsgContent("testSend")
+	                        .addExtra("from", "JPush")
+	                .build())
+	                .build();
+	    }
+	 
+	 
+	 //构建一个推送通知的推送对象
+	 public static PushPayload buildNotice(String alias){
+		return  PushPayload.newBuilder()
+	                .setPlatform(Platform.all())
+	                .setAudience(Audience.alias(alias))
+	               .setNotification(Notification.alert("message notice"))
+	                .build();
+	 }
+	 
+	 
+	 @Test
+	 public void test07(){
+		 JPushServiceImpl pushService = new JPushServiceImpl();
+			
+			//向ios端发送通知
+			pushService.sendNoticeToTag("06a1a063f4e146719f5a81d8dcb9ec22", "您有一条新的校园公告，请点击查看", "ios");
+	 }
+	 
+}

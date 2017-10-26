@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+		http://www.springframework.org/schema/beans/spring-beans-3.1.xsd 
+		http://www.springframework.org/schema/context 
+		http://www.springframework.org/schema/context/spring-context-3.1.xsd">
+
+	<bean id="draftServiceImpl"
+		class="com.topview.multimedia.service.section.draft.DraftServiceImpl">
+		<property name="draftSaveProcesses">
+			<list>
+				<ref bean="draftLimitProcess" />
+				<ref bean="draftSaveProcess" />
+			</list>
+		</property>
+		<property name="draftDeleteProcesses">
+			<list>
+				<ref bean="draftDeleteProcess" />
+			</list>
+		</property>
+		<property name="draftUpdateProcesses">
+			<list>
+				<ref bean="draftLimitProcess" />
+				<ref bean="draftUpdateProcess" />
+			</list>
+		</property>
+		<property name="draftFindProcesses">
+			<list>
+				<ref bean="draftFindProcess" />
+			</list>
+		</property>
+		<property name="draftSendProcesses">
+			<list>
+				<ref bean="draftSendTypeProcess" />
+				<ref bean="draftUpdateProcess" />
+			</list>
+		</property>
+	</bean>
+
+</beans>

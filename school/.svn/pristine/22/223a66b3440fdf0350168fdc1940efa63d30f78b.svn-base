@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.topview.school.dao.FeedbackAccessoryMapper">
+  <resultMap id="BaseResultMap" type="com.topview.school.po.FeedbackAccessory">
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="feedback_id" jdbcType="INTEGER" property="feedbackId" />
+    <result column="url" jdbcType="VARCHAR" property="url" />
+  </resultMap>
+ 
+  <insert id="insert" parameterType="com.topview.school.po.FeedbackAccessory" useGeneratedKeys="true" keyProperty="id">
+    insert into feedback_accessory (feedback_id, url)
+    values (#{feedbackId}, #{url})
+  </insert>
+
+</mapper>

@@ -1,0 +1,27 @@
+{
+  "success": true,
+  "msg": "ok",
+  "children": [{
+    "name": "语文组",
+    "expanded": true,
+    "children": [{
+      "id": "6f88b4604cca4cfdbdc8b9e8331e03fe",
+      "name": "房思源",
+      "leaf": true
+    }, {
+      "id": "1b73f14a5ab24a778a5b7257558eb635",
+      "name": "廖朝辉",
+      "leaf": true
+    }]
+  }, {
+    "name": "三年2班",
+    "expanded": true,
+    "children": [{
+      "name": "梁小成",
+      "leaf": true
+    }, {
+      "name": "吴小亮",
+      "leaf": true
+    }]
+  }]
+}

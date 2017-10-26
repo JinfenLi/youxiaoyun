@@ -1,0 +1,151 @@
+package com.topview.school.vo.exam;
+
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
+
+import com.topview.school.po.Exam;
+import com.topview.school.util.UUIDUtil;
+
+public class ExamInfo {
+	
+	private String id;
+	private String curriculaVariableId;
+	private int type;
+	@Size(max=16)
+	private String name;
+	private String teacherId;
+	@NotNull
+	private String date;
+	private String clazzName; //班级名称
+	private String clazzId; //班级id
+	private String templetName;
+
+	public String getId() {
+		return id;
+	}
+
+	public void setId(String id) {
+		this.id = id;
+	}
+
+	public String getCurriculaVariableId() {
+		return curriculaVariableId;
+	}
+
+	public void setCurriculaVariableId(String curriculaVariableId) {
+		this.curriculaVariableId = curriculaVariableId;
+	}
+
+	public int getType() {
+		return type;
+	}
+
+	public void setType(int type) {
+		this.type = type;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public String getTeacherId() {
+		return teacherId;
+	}
+
+	public void setTeacherId(String teacherId) {
+		this.teacherId = teacherId;
+	}
+
+	public String getDate() {
+		return date;
+	}
+
+	public void setDate(String date) {
+		this.date = date;
+	}
+
+	public static Exam changeToPo(ExamInfo info) {
+		Exam exam = new Exam();
+		exam.setId(info.getId() == null ? UUIDUtil.getUUID() : info.getId());
+		exam.setName(info.getName());
+		exam.settScCurriculaVariableId(info.getCurriculaVariableId());
+		exam.setType(info.getType());
+		exam.setTempletName(info.getTempletName());
+		DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+		try {
+			exam.setExam_time(df.parse(info.getDate()));
+		} catch (ParseException e) {
+			e.printStackTrace();
+			return null;
+		}
+		return exam;
+	}
+
+	public static List<Exam> changeToPo(List<ExamInfo> infos) {
+		List<Exam> exams = new ArrayList<Exam>();
+		for (ExamInfo info : infos) {
+			exams.add(ExamInfo.changeToPo(info));
+		}
+		return exams;
+	}
+
+	public static ExamInfo changeToVo(Exam exam) {
+		ExamInfo info = new ExamInfo();
+		info.setCurriculaVariableId(exam.gettScCurriculaVariableId());
+		info.setId(exam.getId());
+		info.setName(exam.getName());
+		info.setType(exam.getType());
+		info.setTempletName(exam.getTempletName());
+		DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+		info.setDate(df.format(exam.getExam_time()));
+		return info;
+	}
+
+	public static List<ExamInfo> changeToVo(List<Exam> list) {
+		
+		List<ExamInfo> infos = new ArrayList<ExamInfo>();
+		if (list.size() > 0) {
+			int size = list.size();
+			for (int i = 0; i < size; i++) {
+				infos.add(changeToVo(list.get(i)));
+			}
+		}
+		return infos;
+	}
+
+	public String getClazzName() {
+		return clazzName;
+	}
+
+	public void setClazzName(String clazzName) {
+		this.clazzName = clazzName;
+	}
+
+	public String getClazzId() {
+		return clazzId;
+	}
+
+	public void setClazzId(String clazzId) {
+		this.clazzId = clazzId;
+	}
+
+	public String getTempletName() {
+		return templetName;
+	}
+
+	public void setTempletName(String templetName) {
+		this.templetName = templetName;
+	}
+	
+	
+}

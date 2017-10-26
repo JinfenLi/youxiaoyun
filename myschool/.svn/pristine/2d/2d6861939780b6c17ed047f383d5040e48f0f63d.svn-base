@@ -1,0 +1,66 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<link rel="shortcut icon" href="resources/images/startIcon.png">
+	<title>优校云信息管理平台</title>
+	<!-- <x-compile> -->
+	<!-- <x-bootstrap> -->
+
+	<!-- 引入样式表 -->
+	<link rel="stylesheet" href="bootstrap.css">
+	<link rel="stylesheet" href="resources/css/app.css">
+
+	<!-- 引入图片查看器样式 -->
+	<link rel="stylesheet" href="resources/css/viewer.min.css">
+
+	<!-- 引入Ext框架及jquery相关类库 -->
+	<script src="ext/ext-all.js"></script>
+	<script src="ext-lang-zh_CN.js"></script>
+	<script src="resources/js/jquery.min.js"></script>
+	<script src="resources/js/jQuery.md5.js"></script>
+	<script src="global.js"></script>
+
+	<!-- 引入图片查看器 -->
+	<script src="resources/js/viewerDBL.min.js"></script>
+	
+	<!-- 引入app文件及打包后的util,model,store,view的文件 -->
+	<script src="app.js"></script>
+	<script src="builder/main.js"></script>
+	<!-- 重写4.2.3中datefield组件不可改变年份问题 -->
+	<script type="text/javascript">
+		Ext.define('My.override.FormFieldDate', {
+	    override: 'Ext.form.field.Date',
+	    collapseIf: function(e) {
+	        var me = this;
+
+	        if (!me.isDestroyed && !e.within(me.bodyEl, false, true) && !e.within(me.picker.el, false, true) && !me.isEventWithinPickerLoadMask(e)) {
+	            me.collapse();
+	        }
+	    },
+	    mimicBlur: function(e) {
+	        var me = this,
+	            picker = me.picker;
+	        // ignore mousedown events within the picker element
+	        if (!picker || !e.within(picker.el, false, true) && !me.isEventWithinPickerLoadMask(e)) {
+	            me.callParent(arguments);
+	        }
+	    },
+	    isEventWithinPickerLoadMask: function(e) {
+	        var loadMask = this.picker.loadMask;
+	        return loadMask ? e.within(loadMask.maskEl, false, true) || e.within(loadMask.el, false, true) : false;
+	    }
+		});		
+	</script>
+
+	<!-- </x-bootstrap> -->
+	
+	
+	
+	
+	<!-- </x-compile> -->
+</head>
+<body>
+</body>
+</html>

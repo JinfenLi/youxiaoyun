@@ -1,0 +1,116 @@
+package com.topview.school.service.user.student;
+
+import java.util.List;
+
+import com.topview.school.po.Student;
+import com.topview.school.vo.User.StudentAndParentInfo;
+import com.topview.school.vo.User.StudentVo;
+import com.topview.school.vo.User.result.StudentInfoResult;
+
+public interface StudentService {
+
+	public StudentInfoResult studentFind(StudentVo info);
+
+	/**
+	 * 创建学生家长excel表
+	 * @param filePath
+	 * @param sapis
+	 * @return
+	 */
+	public boolean createStudentAndParentExcel(String filePath, List<StudentAndParentInfo> sapis);
+	
+	/**
+	 * 解析上传的excel并保存学生家长个人信息
+	 * @param fileName 文件名
+	 * @param realPath 绝对路径
+	 * @param clazzId 班级id
+	 * @return
+	 */
+	public boolean uploadStudentAndParentInfo(String fileName, String realPath, String clazzId,List<Student> students);
+	
+	/**
+	 * 修改学生个人资料
+	 * 
+	 * @param s
+	 * @return
+	 */
+	public boolean updateStudent(Student s);
+
+	/**
+	 * 根据班级id查询学生
+	 * 
+	 * @param clazzId
+	 * @return
+	 */
+	public List<Student> selectByClazzId(String clazzId);
+
+	/**
+	 * 根据主键查询学生
+	 * @param id
+	 * @return
+	 */
+	public Student selectByPrimaryKey(String id);
+	
+	/**
+	 * 根据家长id查询学生
+	 * @param parentId
+	 * @return
+	 */
+	public List<Student> findByParentId(String parentId);
+	
+	/**
+	 * 删除学生家长
+	 * @param studentId
+	 * @param parentId
+	 * @return
+	 */
+	public boolean deleteStudentAndParent(String studentId, String parentId);
+	
+	/**
+	 * 
+	* @Title: addStudentAndParent
+	* @Description: 添加学生和家长
+	* @param @param info
+	* @param @param clazzId
+	* @param @return    参数
+	* @return boolean    返回类型
+	* @throws
+	 */
+	public boolean addStudentAndParent(StudentAndParentInfo info, String clazzId);
+	
+	/**
+	 * 根据学校id获取该学校的所有学生
+	 * @param schoolId
+	 * @return
+	 */
+	public List<Student> getAllStudentBySchool(String schoolId);
+	
+	/**
+	 * @dateTime 2016年7月20日上午10:42:42
+	 * @author zjd
+	 * @description 根据年级id来查询所有的学生 
+	 */
+	public List<Student> getAllStudentByGradeId(String gradeIds);
+	
+	/**
+	 * 判断此学生是否已登记
+	 * @param studentName
+	 * @param parentPhone
+	 * @return
+	 */
+	public Student judgeStudent(String studentName,String parentPhone);
+	
+	/**
+	 * 通过id来查询学生
+	 * @param id
+	 * @return
+	 */
+	public Student queryById(String id);
+	
+	/**
+	 * 通过班级id来获取班级学生总数
+	 * @param clazzId
+	 * @return
+	 */
+	public int countByClazzId(String clazzId);
+}

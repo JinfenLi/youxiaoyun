@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.topview.school.dao.VersionUpdateMapper">
+	<resultMap id="BaseResultMap" type="com.topview.school.po.VersionUpdate">
+		<id column="id" property="id" jdbcType="INTEGER" />
+		<result column="version" property="version" jdbcType="VARCHAR" />
+		<result column="description" property="description" jdbcType="CHAR" />
+		<result column="comment" property="comment" jdbcType="VARCHAR" />
+		<result column="detail" property="detail" jdbcType="VARCHAR" />
+		<result column="url" property="url" jdbcType="VARCHAR" />
+		<result column="updateTime" property="updateTime" jdbcType="TIMESTAMP" />
+		<result column="device" property="device" jdbcType="VARCHAR" />
+		<result column="t_sc_school_id" property="schoolId" jdbcType="VARCHAR" />
+	</resultMap>
+
+	<insert id="insert" parameterType="com.topview.school.po.VersionUpdate">
+		insert into
+		verson_update(version, description, comment, updateTime, detail, url, device,
+		t_sc_school_id)
+		values(#{version},#{description},#{comment}, #{updateTime}, #{detail},#{url},
+		#{device}, #{schoolId})
+	</insert>
+
+	<select id="selectBySchoolIdAndDevice" parameterType="java.util.Map"
+		resultMap="BaseResultMap">
+		select * from verson_update where t_sc_school_id =
+		#{schoolId} and device = #{device} ORDER BY updateTime desc
+	</select>
+
+</mapper>

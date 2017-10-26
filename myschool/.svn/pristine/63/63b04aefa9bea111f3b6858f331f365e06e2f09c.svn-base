@@ -1,0 +1,47 @@
+//"id", "class", "entranceTime", "population", "headTeacher",
+{
+	"items": [
+		{
+			"id": "1",
+			"entranceTime": "2015/09/01",
+			"class": "一班",
+			"population": 50,
+			"headTeacher": "张三"
+		},
+		{
+			"id": "2",
+			"entranceTime": "2014/09/01",
+			"class": "二班",
+			"population": 40,
+			"headTeacher": "李四"
+		},
+		{
+			"id": "3",
+			"entranceTime": "2013/09/01",
+			"class": "三班",
+			"population": 47,
+			"headTeacher": "赵六"
+		},
+		{
+			"id": "4",
+			"entranceTime": "2012/09/01",
+			"class": "四班",
+			"population": 52,
+			"headTeacher": "王五"
+		},
+		{
+			"id": "5",
+			"entranceTime": "2011/09/01",
+			"class": "五班",
+			"population": 48,
+			"headTeacher": "五讲得"
+		},
+		{
+			"id": "6",
+			"entranceTime": "2010/09/01",
+			"class": "六班",
+			"population": 70,
+			"headTeacher": "刘汉强"
+		}
+	]
+}

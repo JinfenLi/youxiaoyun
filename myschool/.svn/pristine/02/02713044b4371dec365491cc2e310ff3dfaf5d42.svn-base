@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>关于 IOS9 安装说明</title>
+	<link rel="stylesheet" href="ios.css">
+</head>
+<body>
+	<img src="images/123_01.png" alt="">
+	<img src="images/123_02.png" alt="">
+	<img src="images/123_03.png" alt="">
+	<img src="images/123_04.png" alt="">
+	<img src="images/123_05.png" alt="">
+	<img src="images/123_06.png" alt="">
+	<h1>提示：需要用iphone自带的Safari浏览器打开才能成功下载</h1>
+	<button id="download">我 知 道 了</button>
+	<script src="ios.js"></script>
+</body>
+</html>

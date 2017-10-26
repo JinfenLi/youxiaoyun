@@ -1,0 +1,310 @@
+/*
+	path: controller.school.Position
+  author: Drake
+	description: 职位管理controller
+*/
+
+Ext.define('School.controller.teacher.Position', {
+	extend: "Ext.app.Controller",
+	requires: [
+		'School.util.Util',
+		'Ext.ux.Tips'
+	],
+
+	views: [
+		'school.position.PositionMgr',
+		'school.position.PositionWin',
+		'school.position.AllocatePosition',
+		'school.position.TeacherInPosition'
+	],
+
+	refs: [{
+		ref: 'positionList',
+		selector: 'positionmgr'
+	}],
+
+	init: function () {
+		var me = this;
+
+		me.control({
+			'positionmgr actioncolumn': {
+				itemclick: function (action, record) {
+					switch (action) {
+						case 'remove':
+							me.rmPosition(record);
+							break;
+						case 'detail':
+							me.detailPosition(record);
+							break;
+					}
+				}
+			},
+
+			'positionmgr button#addPosition': {
+				'click': me.addPosition
+			},
+
+			'positionmgr button#allocatePosition': {
+				'click': me.allocatePosition
+			},
+
+			'positionmgr button#teacherInPosition': {
+				'click': me.getTeacherInPosition
+			},
+
+			'positionwin button#save': {
+				'click': me.savePosition
+			},
+
+			'allocateposition dataview': {
+				'drop': this.doAllocate
+			},
+
+			'allocateposition #undoAllocateGrid': {
+				'render': this.loadAllocatedTeacher
+			},
+
+			'allocateposition #doAllocateGrid': {
+				'afterrender': this.getUnAllocatedTeacher
+			}
+
+		});
+	},
+
+	// 加载未分配该职位的所有老师
+	getUnAllocatedTeacher: function (self) {
+		var positionList = this.getPositionList();
+		var selectedPositionRec = positionList.getSelectionModel().getSelection()[0],
+			positionId = selectedPositionRec.get('id');
+
+		var allTeacherStore = self.getStore();
+		var allocatedStore = self.up('window').down('#undoAllocateGrid').getStore();
+
+		// 先加载所有教师的store, 然后删除已分配的教师= =
+		allTeacherStore.load({
+			callback: function () {
+				allocatedStore.load({
+					params: {
+						positionId: positionId
+					},
+					callback: function (records, operation, success) {
+						Ext.each(records, function (record) {
+							allTeacherStore.remove(record);
+						});
+					}
+				});
+			}
+		});
+
+	},
+	
+	// 加载该职位下的所有老师
+	loadAllocatedTeacher: function (self) {
+		var positionList = this.getPositionList();
+		var selectedPositionRec = positionList.getSelectionModel().getSelection()[0],
+			positionId = selectedPositionRec.get('id');
+
+		var store = self.getStore();
+		store.load({
+			params: {
+				positionId: positionId
+			}
+		})
+	},
+
+	// 分配教师职位
+	doAllocate: function (node, data, dropRec, dropPosition) {
+		var record = data.records[0], // drag record
+			name = record.get('name'), // 教师名字
+			teacherId = record.get('id'), // 教师id
+			origin = data.view.panel.itemId; // 判断drag操作是来自哪个gridpanel
+
+		var positionList = this.getPositionList();
+		var selectedPositionRec = positionList.getSelectionModel().getSelection()[0],
+			positionId = selectedPositionRec.get('id');
+
+		// 分配/移除职位给老师
+		var url = '',
+			msg = '';
+
+		if (origin == 'doAllocateGrid') {
+			url = '/school/teacher/addPosition.action';
+			msg = '已分配';
+		} else {
+			url = '/school/teacher/deletePosition.action'
+			msg = '已移除';
+		}
+
+		Ext.Ajax.request({
+			url: url,
+			params: {
+				positionId: positionId,
+				teacherId: teacherId
+			},
+			failure: function (res) {
+				School.util.Util.showErrorMsg(res.responseText);
+			},
+			success: function (res) {
+				res = School.util.Util.decodeJSON(res.responseText);
+
+				if (!res.result) {
+					School.util.Util.showErrorMsg('操作失败');
+					return 0;
+				}
+
+				Ext.ux.Tips.msg('提示: ', msg + name);
+			}
+		});
+
+	},
+
+	// 查看该职位下的所有老师
+	getTeacherInPosition: function (btn) {
+		var positionList = this.getPositionList(),
+			store = positionList.getStore();
+
+		var record = positionList.getSelectionModel().getSelection()[0];
+
+		if (!record) {
+			School.util.Util.showErrorMsg('请先选择一个职位');
+			return 0;
+		}
+
+		var win = Ext.widget('teacherinpositionwin');
+		win.setTitle('"' + record.get('name') + '"职位下的所有教师');
+
+		win.down('grid').getStore().load({
+			params: {
+				positionId: record.get('id')
+			},
+			callback: function (records) {
+				if (records.length === 0)
+					School.util.Util.showWarningMsg('该职位下没有分配教师');
+			}
+		});
+
+	},
+
+	// 查看职位详情
+	detailPosition: function (record) {
+		var win = Ext.widget('positionwin'),
+			form = win.down('form');
+
+		var positionName = record.get('name');
+		win.setTitle('"' + positionName + '"职位的详细信息');
+
+		form.loadRecord(record);
+	},
+
+	// 给教师分配职位
+	allocatePosition: function (btn) {
+		var positionList = this.getPositionList(),
+			store = positionList.getStore();
+
+		var record = positionList.getSelectionModel().getSelection()[0];
+
+		if (!record) {
+			School.util.Util.showErrorMsg('请先选择一个职位');
+			return 0;
+		}
+
+		var win = Ext.widget('allocateposition');
+		win.setTitle('给"' + record.get('name') + '"职位分配教师');
+	},
+
+	// 删除职位
+	rmPosition: function (record) {
+		var me = this;
+		var positionId = record.get('id');
+		var positionName = record.get('name');
+
+		Ext.Msg.confirm({
+			title: '警告',
+			msg: '你确定要删除"' + positionName + '"职位? 删除后，已分配了该职位的人员会失去该职位!!',
+			icon: Ext.Msg.WARNING,
+			buttons: Ext.Msg.YESNO,
+
+			fn: function (option) {
+				if (option != 'yes') return 0;
+
+				Ext.Ajax.request({
+					url: '/school/teacher_position/deletePosition.action',
+					params: {
+						positionId: positionId
+					},
+
+					failure: function (res) {
+						School.util.Util.showErrorMsg(res.responseText);
+					},
+
+					success: function (res) {
+						res = School.util.Util.decodeJSON(res.responseText);
+
+						if (!res.result) {
+							School.util.Util.showErrorMsg('操作失败');
+							return 0;
+						}
+
+						School.util.Util.showSuccessMsg('已成功删除"' + positionName + '"职位');
+						me.getPositionList().getStore().load();
+					}
+				})
+			}
+		});
+
+
+	},
+
+	// 保存职位
+	savePosition: function (btn) {
+		var me = this;
+		win = btn.up('window'),
+			form = win.down('form'),
+			store = this.getPositionList().getStore(),
+			formValues = form.getValues();
+
+		// 添加参数schoolId, 'zy_schoolId'在global.js里面定义了
+		formValues.schoolId = zy_schoolId;
+
+
+		if (!form.getForm().isValid()) {
+			School.util.Util.showErrorMsg('请填写必要的信息');
+			return 0;
+		}
+
+		// 如果id不存在的话，就是新增职位，否则更新
+		var url = !formValues.id ?
+			'/school/teacher_position/addPosition.action' :
+			'/school/teacher_position/updatePosition.action';
+
+		Ext.Ajax.request({
+			url: url,
+			params: formValues,
+			method: 'POST',
+
+			success: function (res) {
+				res = School.util.Util.decodeJSON(res.responseText);
+				if (!res.result) {
+					School.util.Util.showErrorMsg('操作失败');
+					return 0;
+				}
+
+				var positionName = formValues.name;
+				School.util.Util.showSuccessMsg('已成功保存' + positionName + '"职位');
+				win.destroy();
+				me.getPositionList().getStore().load();
+			},
+
+			failure: function (res) {
+				School.util.Util.showErrorMsg('添加失败');
+			}
+		});
+
+	},
+
+	// 添加职位
+	addPosition: function (btn) {
+		var win = Ext.widget('positionwin');
+		win.setTitle('新增职位');
+	}
+});

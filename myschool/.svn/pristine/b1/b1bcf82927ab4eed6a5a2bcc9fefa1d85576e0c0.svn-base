@@ -1,0 +1,296 @@
+package com.topview.school.controller.exam.score;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.multipart.MultipartFile;
+
+import com.topview.school.po.Score;
+import com.topview.school.po.Student;
+import com.topview.school.service.clazz.score.ScoreService;
+import com.topview.school.service.school.semester.SemesterService;
+import com.topview.school.service.user.student.StudentService;
+import com.topview.school.util.ClassLoaderUtil;
+import com.topview.school.util.DownloadAndUploadUtil;
+import com.topview.school.util.ExcelUtil;
+import com.topview.school.util.FileUploadUtil;
+import com.topview.school.util.JSONUtil;
+import com.topview.school.util.ScoreInfoUtil;
+import com.topview.school.vo.FileUploadVo;
+import com.topview.school.vo.User.UserInfo;
+import com.topview.school.vo.exam.ScoreInfo;
+import com.topview.school.vo.exam.ScoreInfoResult;
+
+@Controller
+@RequestMapping(value = "/score", produces = "text/html;charset=UTF-8")
+public class ClazzScoreController {
+
+	@Resource
+	private ScoreService scoreService;
+	@Resource
+	private SemesterService semesterService;
+	@Resource
+	private StudentService studentService;
+
+	
+	/**
+	 * 成绩excel上传
+	 * web端接口
+	 * @param file
+	 * @param request
+	 * @param session
+	 * @return
+	 */
+	@RequestMapping(value = "/uploadScore", method = RequestMethod.POST)
+	public @ResponseBody String uploadScore(
+			@RequestParam("file") MultipartFile file,
+			HttpServletRequest request, HttpSession session, String examId) {
+
+		Map<String, Object> resultMap = new HashMap<String, Object>();
+		
+		UserInfo userInfo = (UserInfo) session.getAttribute("currentUser");
+		FileUploadVo vo = FileUploadUtil.uploadFile(file, userInfo.getSchool_id() + "/scoreUpload",
+				request, true); // 保存上传文件
+		try {
+			boolean flag = scoreService.saveScore(vo.getFileName(),
+					vo.getRealPath() + "\\" + vo.getFileName(), examId); //保存成绩
+			resultMap.put("success", flag);
+		} catch (Exception e) {
+			e.printStackTrace();
+			resultMap.put("success", false);
+		}
+		return JSONUtil.toObject(resultMap).toString();
+	}
+
+	/**
+	 * 根据班级id下载班级成绩
+	 * web端接口
+	 * @param request
+	 * @param respone
+	 * @param clazzId
+	 * @param examId
+	 * @return
+	 * @throws IOException
+	 */
+	@RequestMapping(value = "/downClazzScore", method = RequestMethod.POST)
+	public ResponseEntity<byte[]> downClazzScore(HttpServletRequest request,
+			HttpServletResponse respone, String clazzId, String examId,
+			String clazzName, String examName) throws IOException {
+
+		List<ScoreInfo> scoreInfos = new ArrayList<ScoreInfo>();
+
+		// 根据班级id获取班级学生
+		List<Student> students = studentService.selectByClazzId(clazzId);
+
+		// 分别取查每个学生某次考试的成绩
+		for (Student s : students) {
+			ScoreInfo info = new ScoreInfo();
+			info.setStudentName(s.getName());
+			info.setIdCard(s.getIdcard());
+			Score score = scoreService.selectByStudentIdAndExamId(s.getId(),
+					examId);
+			if (score != null) {
+				info.setScore(score.getScore().floatValue() + "");
+				info.setRanking(score.getRank_in_class() + "");
+			}
+			scoreInfos.add(info);
+		}
+
+		// 处理文件路径
+		String fileName = clazzName + examName + "成绩"; // 文件名
+		String relativePath = ClassLoaderUtil.getExtendResource(
+				"../" + "schoolUpload/scoreDownLoad", "school").toString(); // 获取相对于项目外的路径
+		String realPath = relativePath.replace("/", "\\"); // 转换成绝对路径
+		File file0 = new File(realPath);
+		if (!file0.exists()) {
+			file0.mkdirs();
+		}
+		String filePath = realPath + "\\" + fileName; // 目标excel文件绝对路径
+
+		// 生成excel表
+		createScoreExcel(filePath, scoreInfos);
+		File file = new File(filePath);
+		return DownloadAndUploadUtil.download(request, file, fileName);
+	}
+
+	/**
+	 * 教师端根据考试id获取成绩(学生id为空时获取本次考试所有学生成绩，不为空时获取指定学生成绩)
+	 * web端、移动端共用接口
+	 * @param session
+	 * @param examId
+	 * @return
+	 */
+	@RequestMapping("/getScore")
+	@ResponseBody
+	public String getScore(HttpSession session, String examId, String studentId) {
+		String[] filter = { "code", "curriculaId", "clazzId", "path", "examId",
+				"teacherId" };
+		return JSONUtil.toObject(scoreService.getScores(examId, studentId),
+				filter).toString();
+	}
+
+	/**
+	 * 家长端查看学生成绩
+	 * 移动端——家长接口
+	 * @param semesterId
+	 * @param session
+	 * @return
+	 */
+	@RequestMapping("getScoreForStudent")
+	@ResponseBody
+	public String getScoreForStudent(String semesterId, HttpSession session) {
+		Map<String, Object> resultMap = new HashMap<String, Object>();
+		UserInfo userInfo = (UserInfo) session.getAttribute("currentUser");
+		if (semesterId == null || "".equals(semesterId)) {
+			semesterId = semesterService.getCurrentSemester(
+					userInfo.getSchool_id()).getId();
+		}
+		String studentId = userInfo.getParent_info().getStudent_id();
+		String clazzId = userInfo.getClass_id();
+		resultMap.put("success", true);
+		resultMap
+				.put("scores", scoreService.getScoreForStudent(semesterId,
+						studentId, clazzId));
+		return JSONUtil.toObject(resultMap).toString();
+	}
+	
+	
+	/**
+	 * 
+	* @Title: getScoreByStudentId
+	* @Description: 安卓端通过学生id，学期id和该学生班级id查询所有成绩
+	* @param @param studentId
+	* @param @param semesterId
+	* @param @param clazzId
+	* @param @return    参数
+	* @return String    返回类型
+	* @throws
+	 */
+	@RequestMapping("/getScoreByStudentId")
+	@ResponseBody
+	public String getScoreByStudentId(String studentId, String semesterId, String clazzId) {
+		Map<String, Object> resultMap = new HashMap<String, Object>();
+		resultMap.put("success", true);
+		resultMap.put("scores", scoreService.getScoreForStudent(semesterId, studentId, clazzId));
+		return JSONUtil.toObject(resultMap).toString();
+	}
+	
+	/**
+	 * 根据考试id删除该考试所有成绩
+	 * web端接口
+	 * @param id
+	 * @return
+	 */
+	@RequestMapping("deleteByExamId")
+	@ResponseBody
+	public String deleteByExamId(String examId) {
+		Map<String, Object> resultMap = new HashMap<String, Object>();
+		resultMap.put("success", scoreService.deleteByExamId(examId));
+		return JSONUtil.toObject(resultMap).toString();
+	}
+	/**
+	 * 生成成绩excel表
+	 * 
+	 * @param filePath
+	 * @param infos
+	 */
+	private void createScoreExcel(String filePath, List<ScoreInfo> infos) {
+		ExcelUtil poi = new ExcelUtil();
+		List<String> headList = new ArrayList<String>();
+		Map<String, String> map = new HashMap<String, String>();
+
+		headList.add("学生学号");
+		headList.add("学生姓名");
+		headList.add("学生成绩");
+		headList.add("班内排名");
+
+		map.put("学生姓名", "studentName");
+		map.put("学生学号", "idCard");
+		map.put("学生成绩", "score");
+		map.put("班内排名", "ranking");
+
+		try {
+			poi.exportExcel("Sheet1", filePath, map, headList, infos, 1,
+					ScoreInfo.class);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	/**
+	 * 
+	* @Title: countScoreByExamId
+	* @Description: 根据考试id查询所有成绩并统计
+	* @param @param examId
+	* @param @return    参数
+	* @return String    返回类型
+	* @throws
+	 */
+	@RequestMapping("/countScoreByExamId")
+	@ResponseBody
+	public String countScoreByExamId(String examId) {
+		ScoreInfoResult result = scoreService.getScores(examId, null);
+		Map<String, Object> resultMap = ScoreInfoUtil.getCountResult(result.getResult());
+		if(!result.isSuccess()) {
+			resultMap.put("success", false);
+		}
+		return JSONUtil.toObject(resultMap).toString();
+	}
+	
+	/**
+	 * 
+	* @Title: countScoreByExamIdAndClazzId
+	* @Description: 根据考试id和班级id查询所有成绩并统计
+	* @param @param examId
+	* @param @param clazzId
+	* @param @return    参数
+	* @return String    返回类型
+	* @throws
+	 */
+	@RequestMapping("/countScoreByExamIdAndClazzId")
+	@ResponseBody
+	public String countScoreByExamIdAndClazzId(String examId, String clazzId) {
+		ScoreInfoResult result = scoreService.getScoreByExamIdAndClazzId(examId, clazzId);
+		Map<String, Object> resultMap = ScoreInfoUtil.getCountResult(result.getResult());
+		if(!result.isSuccess()) {
+			resultMap.put("success", false);
+		}
+		return JSONUtil.toObject(resultMap).toString();
+	}
+	
+	/**
+	 * 
+	* @Title: countScoreByExamIdAndGradeId
+	* @Description: 根据考试id和年级id查询所有成绩并统计
+	* @param @param examId
+	* @param @param gradeId
+	* @param @return    参数
+	* @return String    返回类型
+	* @throws
+	 */
+	@RequestMapping("/countScoreByExamIdAndGradeId")
+	@ResponseBody
+	public String countScoreByExamIdAndGradeId(String examId, String gradeId) {
+		ScoreInfoResult result = scoreService.getScoreByExamIdAndGradeId(examId, gradeId);
+		Map<String, Object> resultMap = ScoreInfoUtil.getCountResult(result.getResult());
+		if(!result.isSuccess()) {
+			resultMap.put("success", false);
+		}
+		return JSONUtil.toObject(resultMap).toString();
+	}
+}

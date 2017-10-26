@@ -1,0 +1,187 @@
+package com.topview.school.service.clazz.contacts;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpSession;
+
+import org.springframework.stereotype.Service;
+
+import com.topview.school.dao.school.DepartmentsMapper;
+import com.topview.school.dao.school.SubjectMapper;
+import com.topview.school.dao.user.ParentMapper;
+import com.topview.school.dao.user.StudentMapper;
+import com.topview.school.dao.user.TeacherMapper;
+import com.topview.school.dao.user.TeacherPositionMapper;
+import com.topview.school.po.Departments;
+import com.topview.school.po.Student;
+import com.topview.school.po.Subject;
+import com.topview.school.po.Teacher;
+import com.topview.school.po.TeacherPosition;
+import com.topview.school.vo.User.UserInfo;
+import com.topview.school.vo.contacts.ContactsInfo;
+import com.topview.school.vo.contacts.ParentContact;
+import com.topview.school.vo.contacts.result.ContactsInfoResult;
+
+@Service
+public class ContactsServiceImpl implements ContactsService {
+
+	@Resource
+	private StudentMapper studentMapper;
+	@Resource
+	private ParentMapper parentMapper;
+	@Resource
+	private TeacherMapper teacherMapper;
+	@Resource
+	private SubjectMapper subjectMapper;
+	@Resource
+	private DepartmentsMapper departmentsMapper;
+	@Resource
+	private TeacherPositionMapper teacherPositionMapper;
+
+	/**
+	 * 更新用户通讯录头像
+	 */
+	public ContactsInfoResult updatePic(HttpSession session, String picUrl,
+			String userId) {
+
+		ContactsInfoResult result = new ContactsInfoResult();
+		UserInfo userInfo = (UserInfo) session.getAttribute("currentUser");
+
+		if (userInfo.getUser_type().ordinal() == 1) { // 教师类型
+			Teacher teacher = new Teacher();
+			teacher.setPicUrl(picUrl);
+			teacher.setId(userInfo.getUser_id());
+			if (teacherMapper.updateByPrimaryKeySelective(teacher) > 0) { // 更新头像路径
+				result.setSuccess(true);
+			}
+		} else if (userInfo.getUser_type().ordinal() == 2) { // 家长类型
+			String studentId = userInfo.getParent_info().getStudent_id();
+			if (studentId == null || studentId.equals("")) {
+				result.setSuccess(false);
+				return result;
+			}
+			Student student = new Student();
+			student.setId(studentId);
+			student.setPicurl(picUrl);
+			if (studentMapper.updateByPrimaryKeySelective(student) > 0) {
+				result.setSuccess(true);
+			}
+		}
+		return result;
+	}
+
+	/**
+	 * 移动端获取用户通讯录
+	 */
+	@Override
+	public ContactsInfoResult getUserContacts(HttpSession session,
+			String clazzId) { 
+
+		// 定义存放结果的对象
+		ContactsInfoResult result = new ContactsInfoResult();
+		List<ParentContact> parentContacts = new ArrayList<ParentContact>();
+		List<ContactsInfo> teacherContacts = new ArrayList<ContactsInfo>();
+
+		// 准备查询参数
+		UserInfo userInfo = (UserInfo) session.getAttribute("currentUser");
+		String schoolId = userInfo.getSchool_id(); // 获取当前用户的所属学校
+		if (clazzId == null || "".equals(clazzId)) {
+			clazzId = userInfo.getClass_id();
+		}
+		int type = userInfo.getUser_type().ordinal(); // 获取用户类型
+
+		parentContacts = parentMapper.getParentContacts(clazzId); // 获取本班学生家长通讯录
+		switch (type) {
+		// 老师类型
+		case 1:
+			/**
+			 * ****************获取教师通讯录*******************
+			 * 首先拿到该学校所有部门，遍历部门获取每个部门下属的教师
+			 */
+			List<Departments> departments = departmentsMapper
+					.selectAllBySchoolId(schoolId); // 获取该学校的所有部门
+			for (int i = 0; i < departments.size(); i++) {
+				List<ContactsInfo> teachers = teacherMapper
+						.selectByDepartmentId(departments.get(i).getId());
+				for (int j = 0; j < teachers.size(); j++) {
+					teachers.get(j).setDepartment(departments.get(i).getName()); // 设置部门名称
+					teachers.get(j)
+							.setHeadTeacher(
+									teachers.get(j).getClassId() == null ? false
+											: true); // 如果有对应班级id则为班主任
+					teachers.get(j).setTeacherClass(
+							teacherMapper.selectClassNameByTeacherId(teachers
+									.get(j).getId()));
+					Subject subject = subjectMapper.getTeacherSubject(teachers
+							.get(j).getId());
+					teachers.get(j).setSubject(
+							subject == null ? null : subject.getName());// 设置所教科目名称
+					// 查询担任职位
+					List<TeacherPosition> positions = teacherPositionMapper
+							.getPositions(teachers.get(j).getId());
+					List<String> position = new ArrayList<String>();
+					for (int k = 0; k < positions.size(); k++) {
+						position.add(positions.get(k).getName());
+					}
+					teachers.get(j).setPosition(position);
+					teacherContacts.add(teachers.get(j));
+				}
+			}
+			break;
+		case 2:// 家长类型
+			teacherContacts = teacherMapper.selectByClazzId(clazzId); // 家长查看本班老师通讯录
+			for (int i = 0; i < teacherContacts.size(); i++) {
+				teacherContacts.get(i).setHeadTeacher(
+						teacherContacts.get(i).getClassId() == null ? false
+								: true);
+			}
+			break;
+		default:// 非法用户
+			result.setSuccess(false);
+			return result;
+		}
+		result.setParentContacts(parentContacts);
+		result.setTeacherResult(teacherContacts);
+		result.setSuccess(true);
+		return result;
+	}
+
+	/**
+	 * 根据班级id查询本班家长通讯录
+	 * 
+	 * @param clazzId
+	 * @return
+	 */
+	public List<ParentContact> getParentContacts(String clazzId) {
+		return parentMapper.getParentContacts(clazzId);
+	}
+
+	/**
+	 * 根据部门id获取具体部门的通讯录
+	 * 
+	 * @param departmentId
+	 * @return
+	 */
+	public List<ContactsInfo> getDepartmentContact(String departmentId) {
+		
+		Departments d = departmentsMapper.selectByPrimaryKey(departmentId);
+		List<ContactsInfo> teacherContacts = teacherMapper
+				.selectByDepartmentId(departmentId);
+		for (int i = 0; i < teacherContacts.size(); i++) {
+			teacherContacts.get(i).setDepartment(d.getName()); // 设置部门名称
+			teacherContacts.get(i).setHeadTeacher(
+					teacherContacts.get(i).getClassId() == null ? false : true); // 如果有对应班级id则为班主任
+			// 查询担任职位
+			List<TeacherPosition> positions = teacherPositionMapper
+					.getPositions(teacherContacts.get(i).getId());
+			List<String> position = new ArrayList<String>();
+			for (int j = 0; j < positions.size(); j++) {
+				position.add(positions.get(j).getName());
+			}
+			teacherContacts.get(i).setPosition(position);
+		}
+		return teacherContacts;
+	}
+}

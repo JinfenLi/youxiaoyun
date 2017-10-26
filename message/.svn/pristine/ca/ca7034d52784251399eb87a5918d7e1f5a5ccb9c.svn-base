@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+		http://www.springframework.org/schema/beans/spring-beans-3.1.xsd 
+		http://www.springframework.org/schema/context 
+		http://www.springframework.org/schema/context/spring-context-3.1.xsd">
+
+	<!-- 自动扫描dao和service包(自动注入) -->
+	<context:annotation-config /> <!-- @resource 注入开启 -->
+	<context:component-scan base-package="com.topview.message.dao,com.topview.message.service" />
+
+	<bean id="pushMsgServiceImpl" class="com.topview.message.service.PushMsgServiceImpl">
+
+		<property name="pushMessageProcesses">
+			<list>
+				<ref bean= "jPushSendMessageProcess"/>
+				<ref bean="pushMessage" />
+			</list>
+		</property>
+
+		<property name="getOfflineMessageProcesses">
+			<list>
+				<ref bean="getOfflineMessage" />
+			</list>
+		</property>
+
+		<property name="saveOfflineMessageProcesses">
+			<list>
+				<ref bean="saveOfflineMessage" />
+			</list>
+		</property>
+
+		<property name="judgeOnlineProcesses">
+			<list>
+				<ref bean="judgeOnline" />
+			</list>
+		</property>
+
+		<property name="updateMessageProcesses">
+			<list>
+				<ref bean="updateMessage" />
+			</list>
+		</property>
+		
+		<property name="getHistoryMessageProcesses">
+			<list>
+				<ref bean="getHistoryMessage" />
+			</list>
+		</property>
+		
+		<property name="saveMassPushProcesses">
+			<list>
+				<ref bean="saveMassPushProcess" />
+			</list>
+		</property>
+		
+		<property name="saveMultiMessageProcesses">
+			<list>
+				<ref bean="saveMultiMessageProcess" />
+			</list>
+		</property>
+		
+	</bean>
+</beans>

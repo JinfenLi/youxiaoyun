@@ -1,0 +1,431 @@
+/*
+*返回的菜单json格式
+*
+* 
+
+ */
+{
+	"items": [
+		{
+			"id": "0",
+			"text": "区域管理",
+			"imgUrl": "resources/images/menu_area.png",
+			"iconCls": "menu_area",
+			"parent_id": null,
+			"className": null,
+			"leaf": false,
+			"items": [
+				{
+					"id": "areamgr",
+					"text": "区域管理",
+					"iconCls": "menu_profile",
+					"parent_id": "0",
+					"className": "areamgr",
+					"leaf": true
+				}, 	
+				{
+					"id": "publishhotnews",
+					"text": "教育热讯",
+					"iconCls": "menu_profile",
+					"parent_id": "0",
+					"className": "publishnews",
+					"leaf": true
+				},
+				{
+					"id": "schoolmgr",
+					"text": "学校注册",
+					"iconCls": "menu_groups",
+					"parent_id": "1",
+					"className": "schoolmgr",
+					"leaf": true
+				},						
+			]
+		},
+		{
+			"id": "1",
+			"text": "学校管理",//菜单名称
+			"iconCls": "menu_admin", //菜单的样式
+			"imgUrl": "resources/images/menu_school.png", //菜单的图片url
+			"parent_id": null,
+			"className": null,
+			"leaf": false, //是否为叶子
+			"items": [
+				{
+					"id": "introduce",
+					"text": "校园简介",
+					"iconCls": "menu_groups",
+					"parent_id": "1",
+					"className": "schoolsummy",
+					"leaf": true
+				},
+				{
+					"id": "grademgr",
+					"text": "年级&班级",
+					"iconCls": "menu_profile",
+					"parent_id": "2",
+					"className": "grademgr",
+					"leaf": true
+				},
+				{
+					"id": "coursemgr",
+					"text": "学科&课程",
+					"iconCls": "menu_profile",
+					"parent_id": "1",
+					"className": "coursemgr",
+					"leaf": true
+				}
+				// {
+				// 	"id": "335",
+				// 	"text": "课程管理",
+				// 	"iconCls": "menu_profile",
+				// 	"parent_id": "1",
+				// 	"className": "curriculamgr",
+				// 	"leaf": true
+				// },
+				
+			]
+		},
+		{
+			"id": "2",
+			"text": "学生管理",
+			"imgUrl": "resources/images/menu_stu.png",
+			"iconCls": "menu_admin",
+			"parent_id": null,
+			"className": null,
+			"leaf": false,
+			"items": [
+				{
+					"id": "myclass",
+					"text": "我的班级",
+					"iconCls": "menu_profile",
+					"parent_id": "2",
+					"className": "myclass",
+					"leaf": true
+				}, 
+				
+				{
+				"iconCls": "menu_groups",
+			  	"className": "healthmgr",
+			  	"text": "健康管理",
+			  	"leaf": true
+			  	},
+			  	{
+				"iconCls": "menu_groups",
+			  	"className": "appraisemgr",
+			  	"text": "评价管理",
+			  	"leaf": true
+			  	}
+				// {
+				// 	"id": "1",
+				// 	"text": "导入学生名单",
+				// 	"iconCls": "menu_groups",
+				// 	"parent_id": "1",
+				// 	"className": "panel",
+				// 	"leaf": true
+				// },{
+				// 	"id": "2",
+				// 	"text": "导出学生名单",
+				// 	"iconCls": "menu_users",
+				// 	"parent_id": "1",
+				// 	"className": "panel",
+				// 	"leaf": true
+				// },{
+				// 	"id": "3",
+				// 	"text": "学生课程",
+				// 	"iconCls": "menu_profile",
+				// 	"parent_id": "1",
+				// 	"className": "panel",
+				// 	"leaf": true
+				// }
+			]
+		},
+		{
+			"id": "3",
+			"text": "教师管理",
+			"iconCls": "menu_admin",
+			"imgUrl": "resources/images/menu_tea.png",
+			"parent_id": null,
+			"className": null,
+			"leaf": false,
+			"items": [
+				// {
+				// 	"id": "1",
+				// 	"text": "查看教师",
+				// 	"iconCls": "menu_groups",
+				// 	"parent_id": "1",
+				// 	"className": "panel",
+				// 	"leaf": true
+				// },{
+				// 	"id": "2",
+				// 	"text": "导入教师名单",
+				// 	"iconCls": "menu_users",
+				// 	"parent_id": "1",
+				// 	"className": "panel",
+				// 	"leaf": true
+				// },{
+				// 	"id": "3",
+				// 	"text": "导出教师名单",
+				// 	"iconCls": "menu_profile",
+				// 	"parent_id": "1",
+				// 	"className": "panel",
+				// 	"leaf": true
+				// }
+				{
+					"id": "departmgr",
+					"text": "部门管理",
+					"iconCls": "menu_profile",
+					"parent_id": "3",
+					"className": "departmgr",
+					"leaf": true
+				},
+				{
+					"id": "teachermgr",
+					"text": "教师管理",
+					"iconCls": "menu_profile",
+					"parent_id": "3",
+					"className": "teachermgr",
+					"leaf": true
+				},
+				
+				{
+				  "text": "职位管理",
+				  "iconCls": "",
+				  "parent_id": 3,
+				  "className": "positionmgr",
+				  "leaf": true
+
+                }
+			]
+		},
+		{
+			"id": "4",
+			"text": "开课&考试",
+			"imgUrl": "resources/images/menu_score.png",
+			"iconCls": "menu_admin",
+			"parent_id": null,
+			"className": null,
+			"leaf": false,
+			"items": [
+				{
+					"id": "showselectedcurricula",
+					"text": "我的课程",
+					"iconCls": "menu_profile",
+					"parent_id": "4",
+					"className": "showselectedcurricula",
+					"leaf": true
+				},
+				{
+					"id": "exammgr",
+					"text": "考试&成绩",
+					"iconCls": "menu_profile",
+					"parent_id": "4",
+					"className": "exammgr",
+					"leaf": true
+				}
+				// {
+				// 	"id": "1",
+				// 	"text": "成绩查看",
+				// 	"iconCls": "menu_groups",
+				// 	"parent_id": "1",
+				// 	"className": "panel",
+				// 	"leaf": true
+				// },{
+				// 	"id": "2",
+				// 	"text": "导出成绩",
+				// 	"iconCls": "menu_users",
+				// 	"parent_id": "1",
+				// 	"className": "panel",
+				// 	"leaf": true
+				// },{
+				// 	"id": "3",
+				// 	"text": "导入成绩",
+				// 	"iconCls": "menu_profile",
+				// 	"parent_id": "1",
+				// 	"className": "panel",
+				// 	"leaf": true
+				// }
+			]
+		},
+		{
+			"id": "5",
+			"text": "时光影音",
+			"imgUrl": "resources/images/menu_mutimedia.png",
+			"iconCls": "menu_admin",
+			"parent_id": null,
+			"className": null,
+			"leaf": false,
+			"items": [
+				{
+					"id": "schoolalbum",
+					"text": "校园相册",
+					"iconCls": "menu_groups",
+					"parent_id": "5",
+					"className": "albummgr",
+					"leaf": true
+				},
+				{
+					"id": "viewPager",
+					"text": "轮播相册",
+					"iconCls": "menu_groups",
+					"parent_id": "5",
+					"className": "photomgr",
+					"leaf": true
+				},
+				{
+					"id": "classalbum",
+					"text": "班级相册",
+					"iconCls": "menu_groups",
+					"parent_id": "5",
+					"className": "albummgr",
+					"leaf": true
+				},
+				{
+					"id": "checkphoto",
+					"text": "照片审核",
+					"iconCls": "menu_groups",
+					"parent_id": "5",
+					"className": "checkphoto",
+					"leaf": true
+				},
+				// {
+				// 	"id": "1",
+				// 	"text": "照片审核",
+				// 	"iconCls": "menu_groups",
+				// 	"parent_id": "5",
+				// 	"className": "panel",
+				// 	"leaf": true
+				// },
+				{
+					"id": "schoollib",
+					"text": "校园视频库",
+					"iconCls": "menu_users",
+					"parent_id": "5",
+					"className": "videolibmgr",
+					"leaf": true
+				},
+				{
+					"id": "classlib",
+					"text": "班级视频库",
+					"iconCls": "menu_users",
+					"parent_id": "5",
+					"className": "videolibmgr",
+					"leaf": true
+				},
+				{
+					"id": "learningcenter",
+					"text": "学习园地",
+					"iconCls": "menu_users",
+					"parent_id": "5",
+					"className": "learningcenter",
+					"leaf": true
+				}
+			]
+		},
+		{
+			"id": "6",
+			"text": "新闻管理",
+			"imgUrl": "resources/images/menu_news.png",
+			"iconCls": "menu_admin",
+			"parent_id": null,
+			"className": null,
+			"leaf": false,
+			"items": [
+				// {
+				// 	"id": "1",
+				// 	"text": "查看新闻",
+				// 	"iconCls": "menu_groups",
+				// 	"parent_id": "1",
+				// 	"className": "panel",
+				// 	"leaf": true
+				// },
+				{
+					"id": "classnews",
+					"text": "年级新闻",
+					"iconCls": "menu_users",
+					"parent_id": "1",
+					"className": "newsmgr",
+					"leaf": true
+				},
+				{
+					"id": "schoolnews",
+					"text": "校园新闻",
+					"iconCls": "menu_profile",
+					"parent_id": "1",
+					"className": "newsmgr",
+					"leaf": true
+				}
+				// {
+				// 	"id": "publishnews",
+				// 	"text": "发布新闻",
+				// 	"iconCls": "menu_users",
+				// 	"parent_id": "1",
+				// 	"className": "publishnews",
+				// 	"leaf": true
+				// },
+				// {
+				// 	"id": "newsmgr",
+				// 	"text": "新闻管理",
+				// 	"iconCls": "menu_profile",
+				// 	"parent_id": "1",
+				// 	"className": "newsmgr",
+				// 	"leaf": true
+				// }
+			]
+		},
+		{
+			"id": "7",
+			"text": "信息推送",
+			"imgUrl": "resources/images/menu_message.png",
+			"iconCls": "menu_admin",
+			"parent_id": null,
+			"className": null,
+			"leaf": false,
+			"items": [
+			  	{
+				  	"text": "消息推送",
+				  	"className": "pushpanel",
+				  	"iconCls": "menu_groups",
+				  	"left": true
+				},
+				{
+				  	"text": "推送记录",
+				  	"className": "msglist",
+				  	"iconCls": "menu_groups",
+				  	"left": true
+				}
+				//{
+				// 	"id": "7",
+				// 	"text": "用户管理",
+				// 	"iconCls": "menu_groups",
+				// 	"parent_id": "1",
+				// 	"className": "usermgr",
+				// 	"leaf": true
+				// },{
+				// 	"id": "2",
+				// 	"text": "角色管理",
+				// 	"iconCls": "menu_users",
+				// 	"parent_id": "1",
+				// 	"className": "rolemgr",
+				// 	"leaf": true
+				// },{
+				// 	"id": "3",
+				// 	"text": "登陆日志管理",
+				// 	"iconCls": "menu_profile",
+				// 	"parent_id": "1",
+				// 	"className": "panel",
+				// 	"leaf": true
+				// }
+			]
+		},
+		{
+			"id": "8",
+			"text": "角色管理",
+			"imgUrl": "resources/images/menu_role.png",
+			"iconCls": "menu_admin",
+			"parent_id": null,
+			"className": null,
+			"leaf": false
+		}
+	]
+
+}

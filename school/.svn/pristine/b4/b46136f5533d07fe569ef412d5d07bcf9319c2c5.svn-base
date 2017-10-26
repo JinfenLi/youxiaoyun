@@ -1,0 +1,131 @@
+package com.topview.school.controller.multimedia.horn;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.topview.multimedia.service.horn.HornService;
+import com.topview.multimedia.util.NotEmptyString;
+import com.topview.multimedia.util.UUIDUtil;
+import com.topview.multimedia.vo.HornInfo;
+import com.topview.multimedia.vo.result.HornInfoResult;
+import com.topview.school.po.Clazz;
+import com.topview.school.po.Parent;
+import com.topview.school.po.Student;
+import com.topview.school.po.Teacher;
+import com.topview.school.service.clazz.ClazzService;
+import com.topview.school.service.system.authc.UserRoleService;
+import com.topview.school.service.user.parent.ParentService;
+import com.topview.school.service.user.student.StudentService;
+import com.topview.school.service.user.teacher.TeacherService;
+import com.topview.school.util.JSONUtil;
+
+@Controller
+@RequestMapping(value = "/horn", produces = "text/html;charset=UTF-8")
+public class HornController {
+
+	@Autowired
+	private HornService hornService;
+	@Autowired
+	private TeacherService teacherService;
+	@Autowired
+	private StudentService studentService;
+	@Autowired
+	private ParentService parentService;
+	@Autowired
+	private UserRoleService userRoleService;
+	@Autowired
+	private ClazzService clazzService;
+	private static final Logger logger = Logger.getLogger(HornController.class);
+	
+	@RequestMapping("/getHorn")
+	@ResponseBody
+	public String getHorn(String userId) {
+		Map<String,Object> resultMap = new HashMap<>();
+		if(NotEmptyString.isNotNullString(userId)) {
+			HornInfo hornInfo = new HornInfo();
+			List<String> userIds = new ArrayList<String>();
+			userIds.add(userId);
+			hornInfo.setUserIds(userIds);
+			HornInfoResult hornInfoResult = hornService.hornGetProcess(hornInfo);
+			if(hornInfoResult != null) {
+				List<HornInfo> list = hornInfoResult.getResult();
+				if(list != null) {
+					for(HornInfo h: list) {
+						try{
+							String senderId = h.getSendId();
+							Teacher teacher = teacherService.selectTeacherById(senderId);
+							h.setSenderName(teacher.getName());
+						}catch(Exception e) {
+							logger.error("小喇叭找不到发送者啦" + h.getSendId());
+						}
+					}
+				}
+			}
+			resultMap.put("HornInfoResult", hornInfoResult);
+		}
+		return JSONUtil.toObject(resultMap).toString();
+	}
+	
+	@RequestMapping("/pushHorn")
+	@ResponseBody
+	public String pushHorn(String message, String beginTime, String endTime, String userId, String semesterId) {
+		Map<String,Object> resultMap = new HashMap<>();
+		List<String> listUserIds = new ArrayList<String>();
+		HornInfo hornInfo = new HornInfo();
+		List<Student> listStudent = new ArrayList<Student>();
+		resultMap.put("success", false);
+		if(NotEmptyString.isNotEmpty(new String[]{message,userId,beginTime,endTime})) {
+			Teacher teacher = teacherService.selectTeacherById(userId);
+			if(teacher.gettScClassId() != null) {
+				listStudent = studentService.selectByClazzId(teacher.gettScClassId());
+				pushHorn(userId, message, beginTime, endTime, listUserIds, hornInfo, listStudent);
+				resultMap.put("success", true);
+			}else if(teacher.gettScGradeId() != null) {
+				listStudent = studentService.getAllStudentByGradeId(teacher.gettScGradeId());
+				pushHorn(userId, message, beginTime, endTime, listUserIds, hornInfo, listStudent);
+				resultMap.put("success", true);
+			}else if(userRoleService.hasRole(userId, "7cc0199c8ce84fb0bc181007cee6f8a5")) {
+				listStudent = studentService.getAllStudentBySchool(teacher.gettScSchoolId());
+				pushHorn(userId, message, beginTime, endTime, listUserIds, hornInfo, listStudent);
+			}else {
+				List<Clazz> listClazz = clazzService.selectTeacherClazzs(userId, semesterId);
+				for(Clazz clazz: listClazz) {
+					List<Student> aClazzStudentList = studentService.selectByClazzId(clazz.getId());
+					listStudent.addAll(aClazzStudentList);
+				}
+				pushHorn(userId, message, beginTime, endTime, listUserIds, hornInfo, listStudent);
+			}
+		}
+		return JSONUtil.toObject(resultMap).toString();
+	}
+
+	private void pushHorn(String userId, String message, String beginTime, String endTime, List<String> listUserIds, HornInfo hornInfo,
+			List<Student> listStudent) {
+		for(Student student: listStudent) {
+			List<Parent> listParent = parentService.selectByStudentId(student.getId());
+			for(Parent parent: listParent) {
+				listUserIds.add(parent.getId());
+			}
+		}
+		hornInfo.setSendId(userId);
+		hornInfo.setId(UUIDUtil.getUUID());
+		hornInfo.setUserIds(listUserIds);
+		try{
+			hornInfo.setBeginTime(beginTime);
+			hornInfo.setEndTime(endTime);;
+		}catch(Exception e) {
+			return ;
+		}
+		hornInfo.setMessage(message);
+		hornInfo.setFlag(0);
+		hornService.hornPushPrrcess(hornInfo);
+	}
+}

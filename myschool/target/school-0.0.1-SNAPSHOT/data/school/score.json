@@ -1,0 +1,61 @@
+//score
+{
+	"items": [
+		{
+			// "id", "number", "name", "score" 
+			"id": "1",
+			"number": "5903",
+			"name": "zzy",
+			"score": "78"
+		},
+		{
+			// "id", "number", "name", "score" 
+			"id": "2",
+			"number": "5904",
+			"name": "zzy",
+			"score": "78"
+		}
+		{
+			// "id", "number", "name", "score" 
+			"id": "13",
+			"number": "5906",
+			"name": "zzy",
+			"score": "78"
+		}
+		{
+			// "id", "number", "name", "score" 
+			"id": "3",
+			"number": "5909",
+			"name": "zzy",
+			"score": "78"
+		}
+		{
+			// "id", "number", "name", "score" 
+			"id": "4",
+			"number": "5803",
+			"name": "zzy",
+			"score": "78"
+		}
+		{
+			// "id", "number", "name", "score" 
+			"id": "56",
+			"number": "5703",
+			"name": "zzy",
+			"score": "78"
+		}
+		{
+			// "id", "number", "name", "score" 
+			"id": "11",
+			"number": "5907",
+			"name": "zzy",
+			"score": "78"
+		}
+		{
+			// "id", "number", "name", "score" 
+			"id": "133",
+			"number": "5913",
+			"name": "zzy",
+			"score": "78"
+		}
+	]
+}

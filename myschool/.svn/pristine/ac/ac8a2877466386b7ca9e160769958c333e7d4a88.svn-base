@@ -1,0 +1,115 @@
+package com.topview.school.vo.curricula;
+
+/**
+ * @Description 选课情况VO
+ * @Author <wuyiliang 757210697@qq.com>
+ * @Date 2015年8月7日 下午10:03:23
+ * @CopyRight 2015 TopView Inc
+ * @version V1.0
+ */
+public class CurriculaVariableInfo2 {
+
+	private String id; // 选课表id
+	private String curriculaId; // 课程id
+	private String classId;		//班级ID
+	private String tScTeacherId; //选课中对应科目的id 
+	private String tScSemesterId;	//选课中对应学期的id 
+	private String subjectName; // 学科名称
+	private String curriculaName; // 课程名称
+	private String clazzName; // 班级名称
+	private String teacherName; // 科任老师姓名
+	private String phone; // 任课老师联系方式
+	
+
+
+	public String gettScTeacherId() {
+		return tScTeacherId;
+	}
+
+	public void settScTeacherId(String tScTeacherId) {
+		this.tScTeacherId = tScTeacherId;
+	}
+
+	public String gettScSemesterId() {
+		return tScSemesterId;
+	}
+
+	public void settScSemesterId(String tScSemesterId) {
+		this.tScSemesterId = tScSemesterId;
+	}
+
+	public String getCreateTime() {
+		return createTime;
+	}
+
+	public void setCreateTime(String createTime) {
+		this.createTime = createTime;
+	}
+
+	private String createTime;
+
+	public String getId() {
+		return id;
+	}
+
+	public String getClassId() {
+		return classId;
+	}
+
+	public void setClassId(String classId) {
+		this.classId = classId;
+	}
+
+	public void setId(String id) {
+		this.id = id;
+	}
+
+	public String getCurriculaId() {
+		return curriculaId;
+	}
+
+	public void setCurriculaId(String curriculaId) {
+		this.curriculaId = curriculaId;
+	}
+
+	public String getSubjectName() {
+		return subjectName;
+	}
+
+	public void setSubjectName(String subjectName) {
+		this.subjectName = subjectName;
+	}
+
+	public String getCurriculaName() {
+		return curriculaName;
+	}
+
+	public void setCurriculaName(String curriculaName) {
+		this.curriculaName = curriculaName;
+	}
+
+	public String getClazzName() {
+		return clazzName;
+	}
+
+	public void setClazzName(String clazzName) {
+		this.clazzName = clazzName;
+	}
+
+	public String getTeacherName() {
+		return teacherName;
+	}
+
+	public void setTeacherName(String teacherName) {
+		this.teacherName = teacherName;
+	}
+
+	public String getPhone() {
+		return phone;
+	}
+
+	public void setPhone(String phone) {
+		this.phone = phone;
+	}
+
+}

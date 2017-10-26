@@ -1,0 +1,80 @@
+package com.topview.school.service.clazz.curricula;
+
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpSession;
+
+import com.topview.school.po.Curricula;
+import com.topview.school.vo.curricula.CurriculaVo;
+import com.topview.school.vo.curricula.result.ClassCurriculaInfoResult;
+
+public interface CurriculaService {
+
+	/**
+	 * 根据主键查询
+	 * 
+	 * @param id
+	 * @return
+	 */
+	public Curricula selectByPrimaryKey(String id);
+
+	/**
+	 * 创建课程
+	 * 
+	 * @param curricula
+	 * @return
+	 */
+	public Curricula createCurricula(Curricula curricula);
+
+	/**
+	 * 根据学科id获取课程
+	 * 
+	 * @param subjectId
+	 * @return
+	 */
+	public List<CurriculaVo> getCurriculaBySubjectId(String subjectId);
+
+	/**
+	 * 根据课程id删除课程
+	 * 
+	 * @param curriculaId
+	 * @return
+	 */
+	public boolean delectCurricula(String curriculaId);
+
+	/**
+	 * 更新课程信息
+	 * 
+	 * @param curricula
+	 * @return
+	 */
+	public boolean updateCurricula(Curricula curricula);
+
+	/**
+	 * 获取课程表
+	 * 
+	 * @param session
+	 * @return
+	 */
+	public ClassCurriculaInfoResult getCurricula(HttpSession session,
+			String clazzId, String semesterId);
+
+	/**
+	 * 上传课表
+	 * 
+	 * @param fileName
+	 * @param realPath
+	 * @param clazzId
+	 * @return
+	 */
+	public boolean uploadCurricula(String fileName, String realPath,
+			String clazzId, String semesterId);
+
+	/**
+	 * 根据学科id+适应年级+适应学期查询课程或单一条件查询
+	 * 
+	 * @return
+	 */
+	public List<Curricula> getCurriculas(Map<String, Object> map);
+}

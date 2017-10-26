@@ -1,0 +1,28 @@
+package message;
+
+import org.junit.Test;
+
+import com.topview.message.vo.OfflineMessageVo;
+
+public class VoJsonTest {
+	
+	@Test
+	public void test(){
+		OfflineMessageVo vo = new OfflineMessageVo();
+		vo.setContent("我是内容");
+		vo.setEnvelopeId("信件id");
+		vo.setKindId("类型id");
+		vo.setMessageId("message id");
+		vo.setMessageType("message type");
+		vo.setReceiverId("reciever id");
+		vo.setSenderId("sender id");
+		vo.setSenderKidId("sender kid id ");
+		vo.setSendTime("send time");
+		vo.setSms(1);
+		vo.setStatue("status");
+		vo.setStudentId("student id");
+		vo.setType("2");
+		System.out.println(vo.toJsonString());
+	}
+
+}

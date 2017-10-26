@@ -1,0 +1,202 @@
+package com.topview.multimedia.vo;
+
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.List;
+
+import com.topview.multimedia.bean.Pager;
+import com.topview.multimedia.po.EvaluationTemplate;
+import com.topview.multimedia.service.evaluation.enums.EvaluationTemplateEnums;
+import com.topview.multimedia.service.evaluation.enums.PrivacyEnums;
+
+/** * @author  Rachel 
+@date 创建时间：2016年9月21日 下午8:50:25 * 
+@version 1.0 * 
+@parameter  *
+ @since  * 
+@return  */
+public class EvaluationTemplateInfo {
+	
+	private String id;
+
+    private String name;
+
+    private String createTime;
+
+    private String type;
+    
+    private String privacy;
+
+    private String uploaderId;
+
+    private Integer score;
+
+    private String url;
+    
+    private Pager pager;
+    
+    private String schoolId;
+    
+    private String teacherId;
+
+	public String getId() {
+		return id;
+	}
+
+	public void setId(String id) {
+		this.id = id;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public String getCreateTime() {
+		return createTime;
+	}
+
+	public void setCreateTime(String createTime) {
+		this.createTime = createTime;
+	}
+
+	public String getType() {
+		return type;
+	}
+
+	public void setType(String type) {
+		this.type = type;
+	}
+
+	public String getUploaderId() {
+		return uploaderId;
+	}
+
+	public void setUploaderId(String uploaderId) {
+		this.uploaderId = uploaderId;
+	}
+
+	
+
+	public Integer getScore() {
+		return score;
+	}
+
+	public void setScore(Integer score) {
+		this.score = score;
+	}
+
+	public String getUrl() {
+		return url;
+	}
+
+	public void setUrl(String url) {
+		this.url = url;
+	}
+
+	public Pager getPager() {
+		return pager;
+	}
+
+	public void setPager(Pager pager) {
+		this.pager = pager;
+	}
+	
+	
+    
+	 public String getSchoolId() {
+		return schoolId;
+	}
+
+	public void setSchoolId(String schoolId) {
+		this.schoolId = schoolId;
+	}
+	
+	
+
+	public String getPrivacy() {
+		return privacy;
+	}
+
+	public void setPrivacy(String privacy) {
+		this.privacy = privacy;
+	}
+	
+
+	public String getTeacherId() {
+		return teacherId;
+	}
+
+	public void setTeacherId(String teacherId) {
+		this.teacherId = teacherId;
+	}
+
+	public static EvaluationTemplate changeToPo(EvaluationTemplateInfo info){
+	    	EvaluationTemplate et = new EvaluationTemplate();
+	    	if(info.getId()!=null){
+	    		et.setId(info.getId());
+	    	}
+	    	et.setName(info.getName());
+	    	et.setScore(info.getScore());
+	    	EvaluationTemplateEnums type = EvaluationTemplateEnums.PASS;
+	    	if(info.getType()!=null){
+	    		et.setType(type.getName(info.getType()).getCode());
+	    	}
+	    	PrivacyEnums privacy = PrivacyEnums.PUBLIC;
+	    	if(info.getPrivacy()!=null){
+	    		et.setPrivacy(privacy.getName(info.getPrivacy()).getCode());
+	    	}
+	    	et.setUploaderId(info.getUploaderId());
+	    	et.setUrl(info.getUrl());
+	    	et.setSchoolId(info.getSchoolId());
+	    	return et;
+	    }
+	    
+	    public static List<EvaluationTemplate> changeToPo(List<EvaluationTemplateInfo> list){
+	    	
+	    	List<EvaluationTemplate> et = new ArrayList<EvaluationTemplate>();
+	    	
+	    	if(list.size()>0){
+	    		int size =list.size();
+	    		for(int i=0;i<size;i++){
+	    			et.add(changeToPo(list.get(i)));
+	    		}
+	    	}
+	    	return et;
+	    	
+	    }
+	    
+	    public static EvaluationTemplateInfo changeToVo(EvaluationTemplate et){
+	    	EvaluationTemplateInfo info = new EvaluationTemplateInfo();
+	    	info.setId(et.getId());
+	    	DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+	    	info.setName(et.getName());
+	    	info.setScore(et.getScore());
+	    	EvaluationTemplateEnums type = EvaluationTemplateEnums.PASS;
+	    	info.setType(type.getCode(et.getType()).getName());
+	    	PrivacyEnums privacy = PrivacyEnums.PUBLIC;
+	    	info.setPrivacy(privacy.getCode(et.getPrivacy()).getName());
+	    	info.setUploaderId(et.getUploaderId());
+	    	info.setUrl(et.getUrl());
+	    	info.setCreateTime(df.format(et.getCreateTime()));
+	    	info.setSchoolId(et.getSchoolId());
+	    	return info;
+	    }
+	    
+	    public static List<EvaluationTemplateInfo> changeToVo(List<EvaluationTemplate> et){
+	    	List<EvaluationTemplateInfo> list = new ArrayList<EvaluationTemplateInfo>();
+	    	if(et.size()>0){
+	    		int size = et.size();
+	    		for(int i=0;i<size;i++){
+	    			list.add(changeToVo(et.get(i)));
+	    		}
+	    	}
+	    	return list;
+	    	
+	    }
+
+}

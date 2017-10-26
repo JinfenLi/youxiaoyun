@@ -1,0 +1,26 @@
+{
+  "success": true,
+  "data": [{
+    "id": 1,
+    "username": "Drake",
+    "realName": "梁小成",
+    "createTime": "2015-08-19",
+    "active": false,
+    "role": "",
+    "department": ""
+  }, {
+    "id": 2,
+    "username": "zzy",
+    "realName": "张小宇",
+    "createTime": "2015-08-19",
+    "active": false,
+    "role": ""
+  }, {
+    "id": 3,
+    "username": "lun",
+    "realName": "方小伦",
+    "createTime": "2015-08-19",
+    "active": false,
+    "role": ""
+  }]
+}

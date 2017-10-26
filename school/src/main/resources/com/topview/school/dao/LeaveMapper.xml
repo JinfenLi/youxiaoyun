@@ -1,0 +1,327 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.topview.school.dao.LeaveMapper">
+	<resultMap id="BaseResultMap" type="com.topview.school.po.Leave">
+		<id column="id" jdbcType="CHAR" property="id" />
+		<result column="type" jdbcType="VARCHAR" property="type" />
+		<result column="reason" jdbcType="VARCHAR" property="reason" />
+		<result column="applyTime" jdbcType="TIMESTAMP" property="applyTime" />
+		<result column="status" jdbcType="INTEGER" property="status" />
+		<result column="t_sc_parent_id" jdbcType="CHAR" property="tScParentId" />
+		<result column="t_sc_teacher_id" jdbcType="VARCHAR" property="tScTeacherId" />
+		<result column="rejectReason" jdbcType="VARCHAR" property="rejectReason" />
+		<result column="t_sc_student_id" jdbcType="VARCHAR" property="studentId" />
+		<result column="accessory_count" jdbcType="INTEGER" property="accessoryCount" />
+
+	</resultMap>
+	<sql id="Base_Column_List">
+		id, type, reason, applyTime, status, t_sc_parent_id,
+		t_sc_teacher_id, rejectReason, t_sc_student_id, accessory_count
+	</sql>
+	<select id="selectByPrimaryKey" parameterType="java.lang.String"
+		resultMap="BaseResultMap">
+		select
+		<include refid="Base_Column_List" />
+		from t_sc_leave
+		where id = #{id,jdbcType=CHAR}
+	</select>
+	
+	<select id="selectByParameters" resultMap="BaseResultMap">
+		select * from t_sc_leave where 1 = 1
+		<if test="map != null">
+			<foreach item="item" index="key" collection="map.entrySet()">
+				and ${key} =
+				#{item}
+			</foreach>
+		</if>
+	</select>
+	
+	<delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+		delete from
+		t_sc_leave
+		where id = #{id,jdbcType=CHAR}
+	</delete>
+	<insert id="insert" parameterType="com.topview.school.po.Leave">
+		insert into t_sc_leave (id,
+		type, reason, applyTime, status,
+		t_sc_parent_id, t_sc_teacher_id,
+		t_sc_student_id, accessory_count)
+		values (#{id,jdbcType=VARCHAR},
+		#{type,jdbcType=VARCHAR},
+		#{reason,jdbcType=VARCHAR},
+		#{applyTime,jdbcType=TIMESTAMP},
+		#{status,jdbcType=INTEGER},#{tScParentId,jdbcType=CHAR},#{tScTeacherId,jdbcType=VARCHAR},
+		#{studentId,jdbcType=VARCHAR},#{accessoryCount,jdbcType=INTEGER})
+	</insert>
+	<insert id="insertSelective" parameterType="com.topview.school.po.Leave">
+		insert into t_sc_leave
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				id,
+			</if>
+			<if test="type != null">
+				type,
+			</if>
+			<if test="reason != null">
+				reason,
+			</if>
+			<if test="applyTime != null">
+				applyTime,
+			</if>
+			<if test="status != null">
+				status,
+			</if>
+			<if test="tScParentId != null">
+				t_sc_parent_id,
+			</if>
+			<if test="tScTeacherId != null">
+				t_sc_teacher_id,
+			</if>
+			<if test="studentId != null">
+				t_sc_student_id,
+			</if>
+			<if test="rejectReason != null">
+				rejectReason,
+			</if>
+			<if test="accessoryCount != null">
+				accessory_count,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				#{id,jdbcType=CHAR},
+			</if>
+			<if test="type != null">
+				#{type,jdbcType=VARCHAR},
+			</if>
+			<if test="reason != null">
+				#{reason,jdbcType=VARCHAR},
+			</if>
+			<if test="applyTime != null">
+				#{applyTime,jdbcType=TIMESTAMP},
+			</if>
+			<if test="status != null">
+				#{status,jdbcType=INTEGER},
+			</if>
+			<if test="tScParentId != null">
+				#{tScParentId,jdbcType=VARCHAR},
+			</if>
+			<if test="tScTeacherId != null">
+				#{tScTeacherId,jdbcType=VARCHAR},
+			</if>
+			<if test="studentId != null">
+				#{studentId,jdbcType=VARCHAR},
+			</if>
+			<if test="rejectReason != null">
+				#{rejectReason,jdbcType=VARCHAR},
+			</if>
+			<if test="accessoryCount != null">
+				#{accessoryCount,jdbcType=INTEGER},
+			</if>
+		</trim>
+	</insert>
+	<update id="updateByPrimaryKeySelective" parameterType="com.topview.school.po.Leave">
+		update t_sc_leave
+		<set>
+			<if test="tScTeacherId != null and tScTeacherId != ''">
+				t_sc_teacher_id = #{tScTeacherId,jdbcType=VARCHAR},
+			</if>
+			<if test="type != null and type != ''">
+				type = #{type,jdbcType=VARCHAR},
+			</if>
+			<if test="reason != null and reason != ''">
+				reason = #{reason,jdbcType=VARCHAR},
+			</if>
+			<if test="status != null and status != ''">
+				status = #{status,jdbcType=INTEGER},
+			</if>
+			<if test="tScParentId != null and tScParentId != ''">
+				t_sc_parent_id = #{tScParentId,jdbcType=VARCHAR},
+			</if>
+			<if test="studentId != null and studentId != ''">
+				t_sc_student_id = #{studentId,jdbcType=VARCHAR},
+			</if>
+			<if test="rejectReason != null and rejectReason != ''">
+				rejectReason = #{rejectReason,jdbcType=INTEGER},
+			</if>
+			<if test="accessoryCount != null and accessoryCount != ''">
+				accessory_count = #{accessoryCount,jdbcType=INTEGER},
+			</if>
+		</set>
+		where id = #{id,jdbcType=CHAR}
+	</update>
+	<update id="updateByPrimaryKey" parameterType="com.topview.school.po.Leave">
+		update t_sc_leave
+		set t_sc_teacher_id = #{tScTeacherId,jdbcType=VARCHAR},
+		status =
+		#{status,jdbcType=INTEGER},
+		rejectReason = #{rejectReason,
+		jdbcType=VARCHAR}
+		where id =
+		#{id,jdbcType=VARCHAR}
+	</update>
+
+	<!-- 根据班级id查询记录条数 -->
+	<select id="selectCountByClazzId" parameterType="java.util.Map"
+		resultType="java.lang.Integer">
+		select count(*) from t_sc_leave l, t_sc_parent p,
+		t_sc_parent_student ps, t_sc_student s where s.t_sc_class_id =
+		#{clazzId} and s.id = ps.student_id and ps.parent_id = p.id and p.id =
+		l.t_sc_parent_id
+		<if test = "status != null">
+				and l.status = #{status}
+		</if>
+	</select>
+
+	<!-- 根据学生id查询记录条数 -->
+	<select id="selectCountByStudentId" parameterType="java.util.Map"
+		resultType="java.lang.Integer">
+		select count(*) from t_sc_leave l where l.t_sc_student_id =
+		#{studentId,jdbcType=VARCHAR}
+		<if test = "status != null">
+				and l.status = #{status}
+		</if>
+	</select>
+
+	<!-- 自定义返回结果类型 -->
+	<resultMap id="leaveInfo" type="com.topview.school.vo.leave.LeaveInfo">
+		<id column="t_sc_leave_id" property="id" />
+		<result column="t_sc_leave.type" property="type" />
+		<result column="t_sc_leave.reason" property="reason" />
+		<result column="t_sc_leave.applyTime" property="applyTime" />
+		<result column="t_sc_leave.status" property="status" />
+		<result column="t_sc_leave.rejectReason" property="rejectReason" />
+		<result column="t_sc_leave.accessory_count" property="accessoryCount" />
+		<result column="t_sc_parent.id" property="parentId" />
+		<result column="t_sc_parent.name" property="parentName" />
+		<result column="t_sc_student.id" property="studentId" />
+		<result column="t_sc_student.name" property="studentName" />
+	</resultMap>
+
+	<!--根据学生id分页查询请假条 ,因为请假申请有可能尚未审批，所以教师id和教师姓名要在单独查询，附件列表也要另外查询 -->
+	<select id="findByStudentId123" parameterType="java.util.Map"
+		resultMap="leaveInfo">
+		select l.id as id, l.type as type, l.reason as reason,
+		DATE_FORMAT(l.applyTime, '%Y-%m-%d') as applyTime, l.status as status,
+		l.rejectReason as
+		rejectReason, l.accessory_count as accessoryCount,
+		p.name as
+		parentName, p.id as parentId,
+		s.name as
+		studentName, s.id as
+		studentId
+		from t_sc_leave l, t_sc_parent p,
+		t_sc_student s
+		where
+		l.t_sc_student_id
+		= #{studentId,jdbcType=VARCHAR}
+		and
+		l.t_sc_student_id
+		=
+		s.id and
+		l.t_sc_parent_id = p.id
+		ORDER
+		BY
+		applyTime DESC
+		limit #{offset},
+		#{limit}
+	</select>
+	
+	
+	<select id = "findByStudentId" parameterType = "java.util.Map"  resultMap = "leaveInfo">
+				 	select l.id as id, l.type as type, l.reason as reason,
+					DATE_FORMAT(l.applyTime, '%Y-%m-%d') as applyTime, l.status as status,
+					l.rejectReason as
+					rejectReason, l.accessory_count as accessoryCount,
+					p.name as
+					parentName, p.id as parentId,
+					s.name as
+					studentName, s.id as
+					studentId
+					from t_sc_leave l, t_sc_parent p,
+					t_sc_student s
+					<where>
+								<if test = "studentId != null  and  studentId != ''">
+										l.t_sc_student_id = #{studentId,jdbcType=VARCHAR} and 
+								</if>
+								<if test = "status != null   and  status != ''">
+										l.status = #{status,jdbcType = INTEGER} and 
+								</if> 
+								l.t_sc_student_id=s.id and
+								l.t_sc_parent_id = p.id
+					</where>
+					ORDER
+					BY
+					applyTime DESC
+					<if test = "offset != null">
+							limit #{offset},
+					</if>
+					<if test = "limit != null">
+						#{limit}
+					</if>
+	</select>
+	
+	
+	
+	<delete id = "deleteLeaveByStudentId" parameterType="java.lang.String">
+			delete from t_sc_leave where 
+			<if test  = "_parameter != null">
+					t_sc_student_id = #{_parameter, jdbcType=VARCHAR}
+			</if>
+	</delete>
+
+	<!--根据请假条id查询请假条 -->
+	<select id="findByLeaveId" parameterType="java.lang.String"
+		resultMap="leaveInfo">
+		select l.id as id, l.type as type, l.reason as reason,
+		DATE_FORMAT(l.applyTime, '%Y-%m-%d') as applyTime, l.status as status,
+		l.rejectReason as
+		rejectReason, l.accessory_count as accessoryCount,
+		p.name as
+		parentName, p.id as parentId,
+		s.name as
+		studentName, s.id as
+		studentId
+		from t_sc_leave l, t_sc_parent p,
+		t_sc_student s
+		where
+		l.id =
+		#{leaveId,jdbcType=VARCHAR}
+		and
+		l.t_sc_parent_id = p.id
+		and
+		l.t_sc_student_id = s.id
+	</select>
+
+
+	<!-- 根据班级id分页查询请假申请记录 -->
+	<select id="findByClazzId" parameterType="java.util.Map"
+		resultMap="leaveInfo">
+		select l.id as id, l.type as type, l.reason as reason,
+		DATE_FORMAT(l.applyTime, '%Y-%m-%d') as applyTime,
+		l.status as status,
+		l.rejectReason as
+		rejectReason, l.accessory_count as
+		accessoryCount,
+		p.name as parentName,
+		p.id as parentId, s.name as studentName,
+		s.id as
+		studentId
+		from
+		t_sc_leave l, t_sc_parent p, t_sc_student s, t_sc_class c
+		<where>
+				<if test = "clazzId != null and clazzId != ''">
+						c.id = #{clazzId} and s.t_sc_class_id = #{clazzId} and 
+				</if>
+				<if test = "status != null  and status != ''">
+						l.status = #{status,jdbcType = INTEGER} AND 
+				</if>
+					 p.id =l.t_sc_parent_id and 
+					 l.t_sc_student_id = s.id
+		</where>
+		 ORDER BY l.applyTime 
+		DESC  limit
+		#{offset}, #{limit}
+	</select>
+
+</mapper>

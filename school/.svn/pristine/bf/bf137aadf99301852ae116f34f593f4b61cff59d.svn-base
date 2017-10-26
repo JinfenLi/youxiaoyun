@@ -1,0 +1,30 @@
+//curricula.json
+{
+	//, "id", "name", "adaptiveGrade", "adaptiveTerm", "comment"
+	"curriculas": [
+		{
+			"tScSubjectId": "1",
+			"id": "1",
+			"name": "语文",
+			"adaptiveGrade": "三年级",
+			"adaptiveTerm": "下",
+			"comment": "什么鬼"
+		},
+		{
+			"tScSubjectId": "1",
+			"id": "2",
+			"name": "语文",
+			"adaptiveGrade": "三年级",
+			"adaptiveTerm": "下",
+			"comment": "什么鬼"
+		},
+		{
+			"tScSubjectId": "1",
+			"id": "2",
+			"name": "语文",
+			"adaptiveGrade": "三年级",
+			"adaptiveTerm": "下",
+			"comment": "什么鬼"
+		},
+	]
+}

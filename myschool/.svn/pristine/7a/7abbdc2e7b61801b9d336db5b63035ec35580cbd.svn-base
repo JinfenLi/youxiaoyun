@@ -1,0 +1,40 @@
+{
+	"items": [
+		{	
+			"id": "1",
+			"name": "广工",
+			"address": "广州",
+			"phone": "1234",
+			"postcode": "123456",
+			"email": "8001",
+			"website": "www.baidu.com"
+		},
+		{	
+			"id": "2",
+			"name": "中大",
+			"address": "广州",
+			"phone": "1234",
+			"postcode": "123456",
+			"email": "8001",
+			"website": "www.baidu.com"
+		},
+		{	
+			"id": "3",
+			"name": "华工",
+			"address": "广州",
+			"phone": "1234",
+			"postcode": "123456",
+			"email": "8001",
+			"website": "www.baidu.com"
+		},
+		{	
+			"id": "4",
+			"name": "电大",
+			"address": "恩平",
+			"phone": "1234",
+			"postcode": "123456",
+			"email": "8001",
+			"website": "www.baidu.com"
+		},
+	]
+}

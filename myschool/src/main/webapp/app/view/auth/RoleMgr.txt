@@ -1,0 +1,45 @@
+Ext.define('School.view.auth.RoleMgr', {
+	extend: 'Ext.ux.LiveSearchGridPanel',
+	alias: 'widget.rolemgr',
+
+	columnLines: true,
+	viewConfig: {
+		stripeRows: true
+	},
+
+	requires: [
+		'Ext.grid.plugin.CellEditing',
+		'Ext.ux.grid.FiltersFeature'
+	],
+
+	initComponent: function() {
+		var me = this;
+
+		me.selModel = {
+			selType: 'cellmodel'
+		};
+
+		me.plugins = [
+			Ext.create('Ext.grid.plugin.CellEditing', {
+				clicksToEdit: 1,
+				pluginId: 'cellplugin'
+			})
+		];
+
+		me.features = [
+			Ext.create('Ext.ux.grid.FiltersFeature', {
+				local: true
+			})
+		];
+
+		me.callParent(arguments);
+	},
+
+	columns: [{
+		text: '名字',
+		dataIndex: 'name'
+	}, {
+		text: '角色',
+		dataIndex: ''
+	}]
+});

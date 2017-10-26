@@ -1,0 +1,225 @@
+package com.topview.school.service.clazz.exam;
+
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpSession;
+
+import com.topview.message.service.PushMsgService;
+import com.topview.message.vo.OfflineMessageVo;
+import com.topview.school.dao.curricula.CurriculaVariableMapper;
+import com.topview.school.dao.exam.ExamMapper;
+import com.topview.school.dao.school.ClazzMapper;
+import com.topview.school.dao.user.ParentMapper;
+import com.topview.school.po.Clazz;
+import com.topview.school.po.CurriculaVariable;
+import com.topview.school.po.Exam;
+import com.topview.school.po.Parent;
+import com.topview.school.po.Student;
+import com.topview.school.service.system.base.BaseServiceImpl;
+import com.topview.school.service.user.student.StudentService;
+import com.topview.school.util.DateFormatUtil;
+import com.topview.school.util.PushThreadUtil;
+import com.topview.school.vo.exam.ExamInfo;
+import com.topview.school.vo.exam.ExamInfoToTeacherResult;
+
+public class ExamServiceImpl  extends BaseServiceImpl<Exam> implements ExamService{
+	private List<ExamProcess> examFindProcesses;
+
+	@Resource
+	private ExamMapper examMapper;
+	@Resource
+	private CurriculaVariableMapper curriculaVariableMapper;
+	@Resource
+	private ClazzMapper clazzMapper;
+	@Resource
+	private ParentMapper parentMapper;
+	@Resource
+	private PushMsgService pushMsgService;
+	@Resource
+	private StudentService studentService;
+
+	@Override
+	public ExamInfoToTeacherResult examFind(HttpSession session) {
+		ExamProcessContext context = new ExamProcessContext();
+		ExamInfoToTeacherResult result = new ExamInfoToTeacherResult();
+		context.setResult(result);
+		context.setSession(session);
+		for (ExamProcess process : examFindProcesses) {
+			if (!process.doProcess(context)) {
+				break;
+			}
+		}
+		return context.getResult();
+	}
+
+	/**
+	 * 创建一次考试
+	 */
+	@Override
+	public boolean createExam(ExamInfo info) {
+		Exam exam = ExamInfo.changeToPo(info);
+		try {
+			return examMapper.insertSelective(exam) > 0 ? true : false;
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+	}
+
+	/**
+	 * 删除一个考试
+	 */
+	@Override
+	public boolean deleteExam(String examId) {
+		try {
+			return examMapper.deleteByPrimaryKey(examId) > 0 ? true : false;
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+	}
+
+	public boolean updateExam(ExamInfo info) {
+		try {
+			Exam exam = ExamInfo.changeToPo(info);
+			return examMapper.updateByPrimaryKeySelective(exam) > 0 ? true
+					: false;
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+		}
+	}
+
+	public List<ExamProcess> getExamFindProcesses() {
+		return examFindProcesses;
+	}
+
+	public void setExamFindProcesses(List<ExamProcess> examFindProcesses) {
+		this.examFindProcesses = examFindProcesses;
+	}
+
+	@Override
+	public List<ExamInfo> selectExamRecord(Map<String, Object> map) {
+		List<ExamInfo> examInfos = ExamInfo.changeToVo(examMapper.selectExamRecord(map));
+		for(int i = 0; i < examInfos.size(); i++) {
+			CurriculaVariable curriculaVariable = curriculaVariableMapper.selectByPrimaryKey(examInfos.get(i).getCurriculaVariableId());
+			Clazz clazz = clazzMapper.selectByPrimaryKey(curriculaVariable.gettScClassId());
+			examInfos.get(i).setClazzId(clazz.getId());
+			examInfos.get(i).setClazzName(clazz.getName());
+		}
+		return examInfos;
+	}
+
+	@Override
+	public int selectExamRecordCount(Map<String, Object> map) {
+		return examMapper.selectExamRecordCount(map);
+	}
+
+	@Override
+	public List<Exam> selectByCurriculaVariableId(String curriculaVariableId) {
+		return examMapper.selectByCurriculaVariableId(curriculaVariableId);
+	}
+
+	@Override
+	public boolean updateExamStatus(String userId, int status, String examId) {
+		HashMap<String, Object> map = new HashMap <String,Object>();
+		map.put("status", status);
+		map.put("examId", examId);
+		if( examMapper.updateExamStatus(map)>0){
+			
+			//更新成功后推送更新内容到教师端app
+			OfflineMessageVo vo = new OfflineMessageVo();
+			vo.setSenderId(userId);
+			vo.setReceiverId(userId);
+			//满足vo保存的时候出错的情况，为教师推送设置一条无用的学生id
+			vo.setStudentId("defaultStudentId");
+			vo.setContent(examId);
+			vo.setMessageType("1");
+			vo.setType("4");
+			vo.setStatue("1");
+			vo.setSendTime(DateFormatUtil.formatDateToSeconds(new Date()));
+			
+			this.pushMsgService.saveMassPush(vo);
+			
+			if(pushMsgService.pushMessage(vo).isSuccess()){
+				System.out.println("To Teacher Push Success");
+			}
+			else{
+				System.out.println("error occur when push");
+			}
+			Exam exam = examMapper.selectByPrimaryKey(examId);
+			CurriculaVariable cv = curriculaVariableMapper.selectByPrimaryKey(exam
+					.gettScCurriculaVariableId());
+			List<Student> students = this.studentService.selectByClazzId(cv.gettScClassId());
+			new Thread(new PushThreadUtil(pushMsgService, getMessageVoList(userId, examId, students)))
+			.start();// 推送
+			return true;
+		}
+		return false;
+	}
+
+	@Override
+	public List<ExamInfo> selectAllTeacherExam(Map<String, Object> map) {
+		List<ExamInfo> examInfos = ExamInfo.changeToVo(examMapper.selectAllTeacherExam(map));
+		for(int i = 0; i < examInfos.size(); i++) {
+			CurriculaVariable curriculaVariable = curriculaVariableMapper.selectByPrimaryKey(examInfos.get(i).getCurriculaVariableId());
+			Clazz clazz = clazzMapper.selectByPrimaryKey(curriculaVariable.gettScClassId());
+			examInfos.get(i).setClazzId(clazz.getId());
+			examInfos.get(i).setClazzName(clazz.getName());
+		}
+		return examInfos;
+	}
+
+	@Override
+	public int selectAllTeacherRecordCount(Map<String, Object> map) {
+		return examMapper.selectAllTeacherRecordCount(map);
+	}
+
+	@Override
+	public List<Exam> getExamByCurriculaIdAndTermId(String curriculaId, String termId, String clazzId) {
+		return examMapper.getExamByCurriculaIdAndTermId(curriculaId, termId, clazzId);
+	}
+	
+	/**
+	 * 获取成绩推送的消息格式
+	 * @param students
+	 * @return
+	 */
+	private List<OfflineMessageVo> getMessageVoList(String userId, String examId, List<Student> students) {
+		OfflineMessageVo vo = new OfflineMessageVo();
+		StringBuilder receiversId = new StringBuilder();
+		StringBuilder studentsId = new StringBuilder();
+		
+		for (Student student : students) {
+			Parent p = parentMapper.selectMainParent(student.getId()); // TODO
+																		// 暂时只推送到主家长
+			receiversId.append(p.getId()).append(",");
+			studentsId.append(student.getId()).append(",");
+			vo.setSenderId(" ");
+			vo.setContent(examId);
+			vo.setMessageType("1");
+			vo.setType("4");
+			vo.setStatue("1");
+			vo.setSendTime(DateFormatUtil.formatDateToSeconds(new Date()));
+		}
+		vo.setReceiverId(receiversId.toString());
+		vo.setStudentId(studentsId.toString());
+		return pushMsgService.saveMassPush(vo).getResult();
+	}
+
+	@Override
+	public Exam selectById(String examId) {
+			return this.examMapper.selectByPrimaryKey(examId);
+	}
+
+	@Override
+	public String getSubjectByExamId(String examId) {
+			return this.examMapper.getSubjectByExamId(examId);
+	}
+
+	
+}

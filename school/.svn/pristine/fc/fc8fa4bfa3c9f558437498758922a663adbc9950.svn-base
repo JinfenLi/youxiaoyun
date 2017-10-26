@@ -1,0 +1,73 @@
+package com.topview.school.service.post;
+
+import java.util.List;
+
+import javax.annotation.Resource;
+
+import org.springframework.stereotype.Service;
+
+import com.topview.multimedia.dao.PostMapper;
+import com.topview.multimedia.dao.ReplyMapper;
+import com.topview.multimedia.vo.PostVo;
+import com.topview.multimedia.vo.ReplyVo;
+import com.topview.school.dao.user.ParentMapper;
+import com.topview.school.dao.user.StudentMapper;
+import com.topview.school.dao.user.TeacherMapper;
+import com.topview.school.po.Parent;
+import com.topview.school.po.Teacher;
+import com.topview.school.vo.post.NewPostVo;
+
+@Service
+public class GetNewPostVoProcess implements NewPostVoProcess {
+
+	@Resource
+	private PostMapper postMapper;
+	
+	@Resource
+	private TeacherMapper teacherMapper;
+	
+	@Resource
+	private StudentMapper studentMapper;
+	
+	@Resource
+	private ParentMapper parentMapper;
+	
+	@Resource
+	private ReplyMapper replyMapper;
+	
+	@Override
+	public boolean doProcess(NewPostVoProcessContext context) {
+		List<PostVo> list = context.getVo().getVoList();
+		PostVo vo = null;
+		Teacher teacher1 = null,teacher2=null;
+		ReplyVo replyVo = null;
+		for(int i=0;i<list.size();i++) {
+			vo = list.get(i);
+			if(vo != null) {
+				teacher1 = teacherMapper.selectByPrimaryKey(vo.getPublisherId());		
+				if(teacher1 != null) {	
+					list.get(i).setPicUrl(teacher1.getPicUrl());
+					list.get(i).setTeacher(true);
+					List<ReplyVo> replyList = vo.getReply();
+					if(replyList != null && !replyList.isEmpty()) {
+						for(int j=0; j<replyList.size() ;j++) {
+							replyVo = vo.getReply().get(j);
+							teacher2 = teacherMapper.selectByPrimaryKey(replyVo.getReplyerId());
+							if(teacher2 != null) {
+								list.get(i).getReply().get(j).setPicUrl(teacher2.getPicUrl());
+							}
+						}
+					}
+				}
+				else {
+					list.get(i).setTeacher(false);
+				}
+			}
+		}
+		NewPostVo newPostVo = new NewPostVo();
+		newPostVo.setVoList(list);
+		context.getResult().setResult(newPostVo);
+		return true;
+	}
+
+}

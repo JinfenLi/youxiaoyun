@@ -1,0 +1,53 @@
+//"id", "entranceTime", "grade", "classes", "population", "monitor",
+{
+	"items": [
+		{
+			"id": "1",
+			"entranceTime": "2015/09/01",
+			"grade": "一年级",
+			"classes": 20,
+			"population": 1000,
+			"monitor": "张三"
+		},
+		{
+			"id": "2",
+			"entranceTime": "2014/09/01",
+			"grade": "二年级",
+			"classes": 20,
+			"population": 980,
+			"monitor": "李四"
+		},
+		{
+			"id": "3",
+			"entranceTime": "2013/09/01",
+			"grade": "三年级",
+			"classes": 21,
+			"population": 1100,
+			"monitor": "赵六"
+		},
+		{
+			"id": "4",
+			"entranceTime": "2012/09/01",
+			"grade": "四年级",
+			"classes": 18,
+			"population": 800,
+			"monitor": "王五"
+		},
+		{
+			"id": "5",
+			"entranceTime": "2011/09/01",
+			"grade": "五年级",
+			"classes": 20,
+			"population": 1010,
+			"monitor": "五讲得"
+		},
+		{
+			"id": "6",
+			"entranceTime": "2010/09/01",
+			"grade": "六年级",
+			"classes": 17,
+			"population": 700,
+			"monitor": "刘汉强"
+		}
+	]
+}

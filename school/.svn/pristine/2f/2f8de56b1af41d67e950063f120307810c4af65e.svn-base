@@ -1,0 +1,149 @@
+package com.topview.school.dao.user;
+
+import java.util.List;
+import java.util.Map;
+
+import com.topview.school.dao.base.BaseDao;
+import com.topview.school.po.Teacher;
+import com.topview.school.vo.contacts.ContactsInfo;
+
+public interface TeacherMapper extends BaseDao<Teacher>{
+	
+	/**
+	 * 通过班级id查看 该班老师通讯录
+	 * @param id
+	 * @return
+	 */
+	public List<ContactsInfo> selectByClazzId(String id);
+	
+	/**
+	 * 教师登陆
+	 * @param param
+	 * @return
+	 */
+	public Teacher findByNameAndPassword(Map<String, Object> param);
+	
+	/**
+	 * 教师端查看本校所有老师通讯录
+	 * @param schoolId
+	 * @return
+	 */
+	public List<ContactsInfo> selectAllBySchoolId(String schoolId); 
+	
+	/**
+	 * 根据部门id获取该部门下所有老师
+	 * @param departmentId
+	 * @return
+	 */
+	public List<ContactsInfo> selectByDepartmentId(String departmentId);
+	
+	/**
+	 * 根据班级id查找班主任
+	 * @param classId
+	 * @return
+	 */
+	public Teacher findHeadTeacher(String classId);
+	
+	/**
+	 * 根据教师id获取所教班的名称
+	 * @param teacherId
+	 * @return
+	 */
+	public List<String> selectClassNameByTeacherId(String teacherId);
+	
+	/**
+	 * 根据教师姓名及学校id查询教师对象
+	 * @param teacherName
+	 * @param schoolId
+	 * @return
+	 */
+	public Teacher selectByNameAndSchoolId(String teacherName, String schoolId);
+	
+	/**
+	 * 根据手机号查询教师
+	 * @param phone
+	 * @return
+	 */
+	public Teacher findByPhone(String phone);
+	
+	/**
+	 * 
+	 * @param map
+	 * @return
+	 */
+	public List<Teacher> getTeacher(Map<String, Object> map);
+
+	/**
+	 * 根据部门id获取老师
+	 * @param departmentId
+	 * @return
+	 */
+	public List<Teacher> selectTeacherByDepartmentId(String departmentId);
+	
+	/**
+	 * 根据学校id获取教师数量
+	 * @param schoolId
+	 * @return
+	 */
+	public int selectCount(String schoolId);
+	
+	/**
+	 * 根据班级id或年级id取消已有的班主任或级长 : map的key为gradeId或clazzId
+	 * @param map
+	 * @return
+	 */
+	public int cancelPosition(Map<String, Object> map);
+	
+	/**
+	 * 增加职位
+	* @Title: addPosition 
+	* @param  params params 的key为teacherId 和 positionId
+	* @return int 
+	* @throws
+	 */
+	public int addPosition(Map<String, Object> params);
+	
+	/**
+	 * 
+	* @Title: 解除老师与职位的关系，若不传教师id则解除该职位下与所有老师的关系
+	* @param params  params 的key为teacherId 和 positionId
+	* @return int 
+	* @throws
+	 */
+	public int deletePosition(Map<String, Object> params);
+	
+	/**
+	 * 根据职位id分页获取教师
+	 * @param map key为positionId、limit、start
+	 * @return
+	 */
+	public List<Teacher> selectTeacherByPositionId(Map<String, Object> map);
+	
+	/**
+	 * 根据职位id查询教师数量
+	 * @param positionId
+	 * @return
+	 */
+	public int getCountByPositionId(String positionId);
+
+	/**
+	 * 根据多条件模糊查询
+	 * @param param
+	 * @return
+	 */
+	public List<Teacher> findLike(Map<String, Object> param); 
+	
+	
+	/**
+	 * 获取所有的老师
+	 */
+	public List<Teacher> getAllTeacher();
+	
+	/**
+	 * @dateTime 2016年6月2日上午10:18:37
+	 * @author zjd
+	 * @description 根据学校id获取到教师
+	 */
+	public List<Teacher> getTeacherBySchoolId(String schoolId);
+	
+}

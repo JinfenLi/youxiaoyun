@@ -1,0 +1,184 @@
+/**
+ * Author: 张展宇
+ * Contact: k3note2@gmail.com
+ * Description: 学校管理控制器
+ */
+Ext.define("School.controller.area.SchoolMgr", {
+	extend: "Ext.app.Controller",
+	views: [
+		"area.SchoolMgr"	
+	],
+	refs: [
+		{
+			ref: "schoolMgr",
+			selector: "schoolmgr"
+		}
+	],
+	init: function() {
+
+		this.control({	
+			
+			//页面渲染完成后请求数据
+			"schoolmgr": {
+				afterrender: function(component) {
+					component.getStore().reload();
+				}
+			},
+
+			//打开新增窗口
+			"schoolmgr toolbar button#add": {
+				click: function(button) {					
+					Ext.create("School.view.area.AddSchool", {
+						itemId: "add"
+					});
+				}
+			},
+
+			//打开编辑窗口
+			"schoolmgr toolbar button#edit": {
+				click: function(button) {
+					
+					var className = "School.view.area.AddSchool", 
+						title = "编辑学校",
+						msg = "请选择需要编辑的学校",
+						grid = button.up("gridpanel");						
+
+					//创建一个编辑窗口 
+					School.util.Util.createEditWin(grid, className, title, msg);
+				}
+			},
+
+			//保存增加或者编辑的学校
+			"addschool form button#save": {
+				click: function(button) {
+					this.saveSchool(button);		
+				}
+			},
+
+			//删除学校
+			"schoolmgr toolbar button#delete": {
+				click: function(button) {
+					this.deleteSchool(button);					
+				} 
+			},
+
+			//查看学校简介
+			"schoolmgr actioncolumn#introduce": {
+				itemclick: function(grid, rowIndex, colIndex) {
+					this.viewSchoolSummary(grid, rowIndex, colIndex);					
+				}
+			},
+
+			//增加管理员
+			"schoolmgr actioncolumn#addManager": {
+				itemclick: function(grid, rowIndex, colIndex) {
+
+					var schoolId = grid.getStore().getAt(rowIndex).get("id");
+
+					Ext.create("School.view.teacher.AddTeacher", {
+						isAuthc: "是",
+						schoolId: schoolId,
+						itemId: "add"
+					}).show();
+					
+				}
+			}
+
+
+		});
+	},
+
+	saveSchool: function(button) {
+
+		"use strict";
+
+		var	url = "sch/updateSchool.action",  
+			msg = "文件类型不对!只支持jpeg,jpg,png,gif格式的图片",
+			store = Ext.ComponentQuery.query("schoolmgr")[0].getStore(),
+			type = "jpeg .jpg .png .gif",
+			form = button.up("form"),
+			params = form.getForm().getValues();
+
+		//验证表单数据是否有效，如果无效则提示用户
+		if( !form.getForm().isValid()) {
+			School.util.Util.showErrorMsg("请正确填好表单！");
+			return 0;
+		}
+
+		if(button.up("addschool").getItemId() === "add") {
+			url = "sch/schoolSave.action";
+			delete params.id;
+		}
+
+		School.util.Util.uploadFile(button, url, params, msg, store, type);		
+	},
+
+	deleteSchool: function(button) {
+
+		"use strict";
+
+		var grid = button.up("gridpanel"),
+			records = grid.getSelectionModel().getSelection(),
+			store = grid.getStore(),
+			url = "sch/deleteSchool.action",
+			params = {};
+
+		//假如没有选择学校，则提示用户，并且退出删除操作
+		if(records.length === 0) {
+			School.util.Util.showWarningMsg("请选择一个要删除的学校！");
+			return;
+		}
+
+		//获取学校id
+		params.id = records[0].get("id"); 
+		
+		//提示用户是否确定删除
+		School.util.Util.confirm("删除学校", function(buttonId) {
+			if(buttonId !== "yes") { //如果不确定，则退出删除操作
+				return;
+			}
+			//如果确定，则开始删除
+			School.util.Update.onDeleteButtonClick(store, url, params);
+		});
+	},
+
+	viewSchoolSummary: function(grid, rowIndex, colIndex) {
+
+		"use strict";
+
+		var schoolId = grid.getStore().getAt(rowIndex).get("id"),
+			summyStore = Ext.create("School.store.news.NewsMgr"),
+			newsId = "",
+			readnews = Ext.ComponentQuery.query("readnews")[0],
+			mainPanel = Ext.ComponentQuery.query("mainpanel")[0],
+	        title = "校园简介",
+	        xtype = "readnews",
+			params = {
+				schoolId: schoolId,
+				type: "summy"
+			};
+
+		//假如已经存在了别名为readnews的实例，则把它关闭
+        if(readnews) {
+        	readnews.close();
+        } 
+
+		summyStore.reload({
+
+			params: params,
+			callback: function() {
+
+				if(summyStore.getCount() === 0) {
+					School.util.Util.showErrorMsg("该校暂时没有校园简介!");
+					return;
+				}
+
+				newsId = summyStore.getAt(0).get("id");
+
+		        //创建一个别名为readnews的实例
+		        School.util.AddTab.addTab(mainPanel, title, xtype, "", newsId);
+			}
+		});			
+	}
+});
+

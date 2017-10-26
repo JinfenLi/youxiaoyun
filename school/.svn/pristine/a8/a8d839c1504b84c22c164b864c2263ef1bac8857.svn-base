@@ -1,0 +1,45 @@
+//$packt-background-color: #669999 !default;
+//$packt-mate-gradient: 'matte' !default;
+//$packt-light-color: #339933 !default;
+//$packt-dark-color: #006600 !default;
+//
+//$button-default-base-color: $packt-background-color;
+//$button-default-base-color-over: $packt-dark-color;
+//$button-default-base-color-pressed: $packt-dark-color;
+//$button-default-base-color-disabled: mix(#000, $packt-dark-color, 8%);
+//$button-default-border-color: $packt-dark-color !default;
+//
+//$button-small-font-weight: bold !default;
+//$button-medium-font-weight: bold !default;
+//$button-large-font-weight: bold !default;
+//
+//$button-default-color: #fff !default;
+//
+//$button-default-glyph-color: $button-default-color;
+//
+//$button-small-border-radius: 1px !default;
+//$button-medium-border-radius: 1px !default;
+//$button-large-border-radius: 1px !default;
+//
+//$button-default-background-gradient: $packt-mate-gradient;
+//$button-default-background-gradient-disabled: $packt-mate-gradient;
+//$button-default-background-gradient-over: $packt-mate-gradient;
+//$button-default-background-gradient-pressed: $packt-mate-gradient;
+//
+//$button-toolbar-border-color: $packt-background-color;
+//
+//$button-toolbar-background-color: $packt-light-color;
+//$button-toolbar-background-color-over: $packt-dark-color;
+//$button-toolbar-background-color-pressed: $packt-dark-color;
+//$button-toolbar-background-color-disabled: mix(#000, $packt-dark-color, 8%);
+//
+//$button-toolbar-color: #fff !default;
+//
+//$button-toolbar-background-gradient: $packt-mate-gradient;
+//$button-toolbar-background-gradient-disabled: $packt-mate-gradient;
+//$button-toolbar-background-gradient-focus: $packt-mate-gradient;
+//$button-toolbar-background-gradient-over: $packt-mate-gradient;
+//$button-toolbar-background-gradient-pressed: $packt-mate-gradient;
+
+//$button-default-glyph-color: #FFB067 !default;
+$button-toolbar-glyph-color: #000 !default;

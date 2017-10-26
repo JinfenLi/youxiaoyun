@@ -1,0 +1,291 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.topview.multimedia.dao.MultimediaVideoMapper" >
+  <resultMap id="BaseResultMap" type="com.topview.multimedia.po.MultimediaVideo" >
+    <id column="ID" property="id" jdbcType="CHAR" />
+    <result column="t_m_ID" property="tMId" jdbcType="CHAR" />
+    <result column="name" property="name" jdbcType="VARCHAR" />
+    <result column="description" property="description" jdbcType="VARCHAR" />
+    <result column="comment" property="comment" jdbcType="VARCHAR" />
+    <result column="label" property="label" jdbcType="VARCHAR" />
+    <result column="status" property="status" jdbcType="INTEGER" />
+    <result column="video_path" property="videoPath" jdbcType="VARCHAR" />
+    <result column="cover_path" property="coverPath" jdbcType="VARCHAR" />
+    <result column="size" property="size" jdbcType="DECIMAL" />
+    <result column="format" property="format" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    ID, t_m_ID, name, description, comment, label, status, video_path, cover_path, size, 
+    format
+  </sql>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.String" >
+    select 
+    <include refid="Base_Column_List" />
+    from t_mutimedia_video
+    where ID = #{id,jdbcType=CHAR}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String" >
+    delete from t_mutimedia_video
+    where ID = #{id,jdbcType=CHAR}
+  </delete>
+  <insert id="insert" parameterType="com.topview.multimedia.po.MultimediaVideo" >
+    insert into t_mutimedia_video (ID, t_m_ID, name, description, 
+      comment, label, status, 
+      video_path, cover_path, size, 
+      format)
+    values (#{id,jdbcType=CHAR}, #{tMId,jdbcType=CHAR}, #{name,jdbcType=VARCHAR}, #{description,jdbcType=VARCHAR}, 
+      #{comment,jdbcType=VARCHAR}, #{label,jdbcType=VARCHAR}, #{status,jdbcType=INTEGER}, 
+      #{videoPath,jdbcType=VARCHAR}, #{coverPath,jdbcType=VARCHAR}, #{size,jdbcType=DECIMAL}, 
+      #{format,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.topview.multimedia.po.MultimediaVideo" >
+    insert into t_mutimedia_video
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        ID,
+      </if>
+      <if test="tMId != null" >
+        t_m_ID,
+      </if>
+      <if test="name != null" >
+        name,
+      </if>
+      <if test="description != null" >
+        description,
+      </if>
+      <if test="comment != null" >
+        comment,
+      </if>
+      <if test="label != null" >
+        label,
+      </if>
+      <if test="status != null" >
+        status,
+      </if>
+      <if test="videoPath != null" >
+        video_path,
+      </if>
+      <if test="coverPath != null" >
+        cover_path,
+      </if>
+      <if test="size != null" >
+        size,
+      </if>
+      <if test="format != null" >
+        format,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=CHAR},
+      </if>
+      <if test="tMId != null" >
+        #{tMId,jdbcType=CHAR},
+      </if>
+      <if test="name != null" >
+        #{name,jdbcType=VARCHAR},
+      </if>
+      <if test="description != null" >
+        #{description,jdbcType=VARCHAR},
+      </if>
+      <if test="comment != null" >
+        #{comment,jdbcType=VARCHAR},
+      </if>
+      <if test="label != null" >
+        #{label,jdbcType=VARCHAR},
+      </if>
+      <if test="status != null" >
+        #{status,jdbcType=INTEGER},
+      </if>
+      <if test="videoPath != null" >
+        #{videoPath,jdbcType=VARCHAR},
+      </if>
+      <if test="coverPath != null" >
+        #{coverPath,jdbcType=VARCHAR},
+      </if>
+      <if test="size != null" >
+        #{size,jdbcType=DECIMAL},
+      </if>
+      <if test="format != null" >
+        #{format,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.topview.multimedia.po.MultimediaVideo" >
+    update t_mutimedia_video
+    <set >
+      <if test="tMId != null" >
+        t_m_ID = #{tMId,jdbcType=CHAR},
+      </if>
+      <if test="name != null" >
+        name = #{name,jdbcType=VARCHAR},
+      </if>
+      <if test="description != null" >
+        description = #{description,jdbcType=VARCHAR},
+      </if>
+      <if test="comment != null" >
+        comment = #{comment,jdbcType=VARCHAR},
+      </if>
+      <if test="label != null" >
+        label = #{label,jdbcType=VARCHAR},
+      </if>
+      <if test="status != null" >
+        status = #{status,jdbcType=INTEGER},
+      </if>
+      <if test="videoPath != null" >
+        video_path = #{videoPath,jdbcType=VARCHAR},
+      </if>
+      <if test="coverPath != null" >
+        cover_path = #{coverPath,jdbcType=VARCHAR},
+      </if>
+      <if test="size != null" >
+        size = #{size,jdbcType=DECIMAL},
+      </if>
+      <if test="format != null" >
+        format = #{format,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where ID = #{id,jdbcType=CHAR}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.topview.multimedia.po.MultimediaVideo" >
+    update t_mutimedia_video
+    set t_m_ID = #{tMId,jdbcType=CHAR},
+      name = #{name,jdbcType=VARCHAR},
+      description = #{description,jdbcType=VARCHAR},
+      comment = #{comment,jdbcType=VARCHAR},
+      label = #{label,jdbcType=VARCHAR},
+      status = #{status,jdbcType=INTEGER},
+      video_path = #{videoPath,jdbcType=VARCHAR},
+      cover_path = #{coverPath,jdbcType=VARCHAR},
+      size = #{size,jdbcType=DECIMAL},
+      format = #{format,jdbcType=VARCHAR}
+    where ID = #{id,jdbcType=CHAR}
+  </update>
+
+  <resultMap id="MultimediaVideo" type="com.topview.multimedia.po.MultimediaVideo" />
+  <parameterMap id="MultimediaVideo" type="com.topview.multimedia.po.MultimediaVideo" />
+
+  <sql id="page">
+  	<if test="offset != null">
+		limit #{offset}
+	</if>
+	<if test="limit != null">
+		, #{limit}
+	</if>
+  </sql>
+
+  <insert id="save" parameterType="MultimediaVideo">
+  	<if test="id != null">
+		insert into t_mutimedia_video values (#{id}, #{mId}, #{name}, #{description}, #{comment}, #{label}, #{status}, #{videoPath}, #{coverPath}, #{size}, #{format})  	
+  	</if>
+  </insert>
+
+  <delete id="delete" parameterType="string">
+  	<!-- delete from MultimediaVideo where id=#{id}  -->
+  	<if test="_parameter != null">
+		delete from t_mutimedia_video where id = #{_parameter}  	
+  	</if>
+  </delete>
+
+  <select id="getCount" resultType="Integer">
+  	select count(*) from t_mutimedia_video
+  </select>
+
+  <select id="findById" resultMap="BaseResultMap">
+    <!-- select * from MultimediaVideo where id = #{id}  -->
+  	<if test="_parameter != null">
+		select * from t_mutimedia_video where id = #{_parameter}  	
+  	</if>
+  </select>
+  
+  <select id="findAll" resultMap="BaseResultMap">
+  	select * from t_mutimedia_video
+  	<include refid="page" />
+  </select>
+  
+  <select id="findIn" resultMap="BaseResultMap">
+    select * from t_mutimedia_video
+    	<if test="key != null">
+    		where ${key} in 
+    		<foreach close=")" collection="values" item="item" open="(" separator=",">
+    			#{item}
+    		</foreach>
+    	</if>
+    <include refid="page" />
+  </select>
+  
+  <select id="findLike" resultMap="BaseResultMap">
+  	select * from t_mutimedia_video where ${key} like "%"#{value}"%"
+  </select>
+  
+  <select id="findByMulti" resultMap="BaseResultMap">
+  	select * from t_mutimedia_video where 1 = 1
+  		<if test="params != null">
+  			<foreach item="item" index="key" collection="params.entrySet()">
+            	and ${key} = #{item}</foreach> 
+  		</if>
+  		<include refid="page" />
+  </select>
+  
+      <select id="findByMulti0" resultMap="BaseResultMap">
+  	select * from t_mutimedia_video where 1 = 1
+  		<if test="params != null">
+  			<foreach item="item" index="key" collection="params.entrySet()">
+            	and ${key} = #{item}</foreach> 
+  		</if>
+  </select>
+  
+  <select id="findLikeByMulti" resultMap="BaseResultMap">
+  	select * from t_mutimedia_video where 1 = 1
+  		<if test="params != null">
+  			<foreach collection="params.entrySet()" item="item">
+				<if test="item.key != null and item.value != null">
+					and ${item.key} like "%"#{item.value}"%"
+				</if>
+  			</foreach>
+  		</if>
+  		<include refid="page" />
+  </select>
+  
+  <update id="update" parameterType="MultimediaVideo">
+  	update t_mutimedia_video
+  	<set>
+  		<if test="mId != null">
+  			 t_m_id=#{mId},
+  		</if>
+		<if test="name != null">
+			name=#{name},
+		</if>
+  		<if test="description != null">
+  			description=#{description},
+  		</if>
+		<if test="comment != null">
+			comment=#{comment},
+		</if>
+		<if test="label != null">
+			label=#{label},
+		</if>
+		<if test="status != null">
+			status=#{status},
+		</if>
+		<if test="videoPath != null">
+			video_path=#{videoPath},
+		</if>
+		<if test="coverPath != null">
+			video_path=#{coverPath},
+		</if>
+		<if test="size != null">
+			size=#{size},
+		</if>
+		<if test="format != null">
+			format=#{format}
+		</if>
+  	</set>
+  	where id=#{id}
+  </update>
+  
+  	<select id="selectCount" resultType="java.lang.Integer"  parameterType="java.lang.String">
+		select count(*) from t_mutimedia_video where t_m_ID = #{libraryId}
+	</select>
+
+</mapper>

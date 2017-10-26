@@ -1,0 +1,125 @@
+* {
+	background: #eee;
+}
+
+em {
+	font-family: boild;
+	color: #FF0000;
+	font-size: 20px;
+}
+
+#header {
+	width: 80%;
+	margin: auto;
+	heigth: 200px;
+	margin-top: 40px;
+}
+
+#body {
+	margin: auto;
+	font-weight: bold;
+	font-family: Arial Bold;
+	width: 300px;
+}
+
+p {
+	text-align: left;
+	/*规定指定元素中的文本的水平对齐方式： 其值可以是：left、right、center、justify(两端对齐)、inherit(从父元素继承text-align属性的值)*/
+	margin: 10px auto; /*设置指定元素的所有外边距：该属性可以赋1到4个值（上右下左; auto指定由浏览器计算外边距*/
+}
+
+#version {
+	margin-left: 17px;
+	width: 180px;
+	border-radius: 10px;
+	background-color: #B0E0E6;
+}
+
+.block label {
+	margin-bottom: 10px;
+	display: inline;
+	margin-right: 30px;
+}
+
+.block textarea {
+	background-color: #B0E0E6;
+	width: 178px;
+	border-radius: 10px;
+}
+
+#updateDetail {
+	margin-right: 0px;
+}
+
+#detail {
+	background-color: #B0E0E6;
+	margin-left: 0px;
+}
+
+span:first-child {
+	margin-left: 20px;
+	color: #4169E1;
+}
+
+span:nth-child(2) {
+	margin-left: 100px;
+	color: #6B8E23;
+}
+
+select {
+	background-color: #B0E0E6;
+	width: 180px;
+}
+
+#upload {
+	margin-left: 20px;
+	width: 80%;
+	height: 40px;
+	border: none;
+	border-radius: 10px;
+	background: #778899;
+	color: #fff;
+	font-size: 90%;
+	cursor: pointer;
+	outline: none;
+	text-align: center;
+}
+
+.uploadFile input[name=file], .uploadFile .url {
+/*	display: none;*/
+}
+
+td:first-child {
+	margin-left: 20px;
+	padding-left: 40px;
+}
+
+.showSchools {
+	margin: auto;
+	widht: 80%;
+}
+
+table {
+	border: 2px solid #B0E0E6;
+	text-align: left;
+	color: blue;
+	margin: auto;
+}
+
+th, td {
+	border-style: ridge;
+	color: black;
+	text-align: center;
+	padding-left: 10px;
+	font-size: 20px;
+}
+
+form {
+	float: right;
+}
+
+#url {
+	width: 180px;
+	background-color: #B0E0E6;
+	border-radius: 10px;
+}

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+		http://www.springframework.org/schema/beans/spring-beans-3.1.xsd 
+		http://www.springframework.org/schema/context 
+		http://www.springframework.org/schema/context/spring-context-3.1.xsd">
+
+	<bean id="fileServiceImpl" class="com.topview.multimedia.service.file.FileServiceImpl">
+		<property name="fileSaveProcesses">
+			<list>
+				<ref bean="fileSaveProcess" />
+			</list>
+		</property>
+		<property name="fileDeleteProcesses">
+			<list>
+				<ref bean="fileDeleteProcess" />
+			</list>
+		</property>
+		<property name="fileUpdateProcesses">
+			<list>
+				<ref bean="fileUpdateProcess" />
+			</list>
+		</property>
+		<property name="fileFindByNameProcesses">
+			<list>
+				<ref bean="fileFindByNameProcess" />
+			</list>
+		</property>
+		<property name="fileFindAllProcesses">
+			<list>
+				<ref bean="fileFindAllProcess" />
+			</list>
+		</property>
+		<property name="fileFindProcesses">
+			<list>
+				<ref bean="fileFindProcess" />
+			</list>
+		</property>
+		<property name="fileJudgeOwnerProcesses">
+			<list>
+				<ref bean="fileJudgeOwnerProcess" />
+			</list>
+		</property>
+		
+	</bean>
+
+</beans>

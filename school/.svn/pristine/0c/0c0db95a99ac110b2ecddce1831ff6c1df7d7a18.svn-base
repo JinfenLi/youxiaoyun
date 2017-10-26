@@ -1,0 +1,515 @@
+package com.topview.school.controller.exam.score;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.multipart.MultipartFile;
+
+import com.topview.message.util.DateFormatUtil;
+import com.topview.school.po.Curricula;
+import com.topview.school.po.Exam;
+import com.topview.school.po.Score;
+import com.topview.school.po.Student;
+import com.topview.school.service.clazz.ClazzService;
+import com.topview.school.service.clazz.curricula.CurriculaService;
+import com.topview.school.service.clazz.curricula.CurriculaVariableService;
+import com.topview.school.service.clazz.exam.ExamService;
+import com.topview.school.service.clazz.score.ScoreService;
+import com.topview.school.service.school.semester.SemesterService;
+import com.topview.school.service.user.student.StudentService;
+import com.topview.school.util.ClassLoaderUtil;
+import com.topview.school.util.DownloadAndUploadUtil;
+import com.topview.school.util.ExcelUtil;
+import com.topview.school.util.FileUploadUtil;
+import com.topview.school.util.JSONUtil;
+import com.topview.school.util.NotEmptyString;
+import com.topview.school.util.ScoreInfoUtil;
+import com.topview.school.vo.FileUploadVo;
+import com.topview.school.vo.User.UserInfo;
+import com.topview.school.vo.exam.ExamDiagram;
+import com.topview.school.vo.exam.ScoreInfo;
+import com.topview.school.vo.exam.ScoreInfoResult;
+import com.topview.school.vo.exam.ScoreRank;
+import com.topview.school.vo.exam.ScoreVoForStudent;
+
+
+@Controller
+@RequestMapping(value = "/score", produces = "text/html;charset=UTF-8")
+public class ClazzScoreController {
+
+	@Resource
+	private ScoreService scoreService;
+	@Resource
+	private SemesterService semesterService;
+	@Resource
+	private StudentService studentService;
+	@Resource
+	private ExamService examService;
+	@Resource
+	private ClazzService clazzService;
+	@Resource
+	private CurriculaService curriculaService;
+	@Resource
+	private CurriculaVariableService curriculaVariableService;
+
+
+	/**
+	 * 成绩excel上传 web端接口
+	 * 
+	 * @param file
+	 * @param request
+	 * @param session
+	 * @return
+	 */
+	@RequestMapping(value = "/uploadScore", method = RequestMethod.POST)
+	public @ResponseBody String uploadScore(@RequestParam("file") MultipartFile file, HttpServletRequest request,
+			HttpSession session, String examId) {
+
+		Map<String, Object> resultMap = new HashMap<String, Object>();
+		UserInfo userInfo = (UserInfo) session.getAttribute("currentUser");
+		FileUploadVo vo = FileUploadUtil.uploadFile(file, userInfo.getSchool_id() + "/scoreUpload", request, true); // 保存上传文件
+		try {
+			boolean flag = scoreService.saveScore(vo.getFileName(), vo.getRealPath() + "\\" + vo.getFileName(), examId); // 保存成绩
+			resultMap.put("success", flag);
+		} catch (Exception e) {
+			e.printStackTrace();
+			resultMap.put("success", false);
+		}
+		return JSONUtil.toObject(resultMap).toString();
+	}
+
+	/**
+	 * 根据班级id下载班级成绩 web端接口
+	 * 
+	 * @param request
+	 * @param respone
+	 * @param clazzId
+	 * @param examId
+	 * @return
+	 * @throws IOException
+	 */
+	@RequestMapping(value = "/downClazzScore", method = RequestMethod.POST)
+	public ResponseEntity<byte[]> downClazzScore(HttpServletRequest request, HttpServletResponse respone,
+			String clazzId, String examId, String clazzName, String examName) throws IOException {
+
+		List<ScoreInfo> scoreInfos = new ArrayList<ScoreInfo>();
+
+		// 根据班级id获取班级学生
+		List<Student> students = studentService.selectByClazzId(clazzId);
+
+		// 分别取查每个学生某次考试的成绩
+		for (Student s : students) {
+			ScoreInfo info = new ScoreInfo();
+			info.setStudentName(s.getName());
+			info.setIdCard(s.getIdcard());
+			Score score = scoreService.selectByStudentIdAndExamId(s.getId(), examId);
+			if (score != null) {
+				info.setScore(score.getScore().floatValue() + "");
+				info.setRanking(score.getRank_in_class() + "");
+			}
+			scoreInfos.add(info);
+		}
+
+		// 处理文件路径
+		String fileName = clazzName + examName + "成绩"; // 文件名
+		String relativePath = ClassLoaderUtil.getExtendResource("../" + "schoolUpload/scoreDownLoad", "school")
+				.toString(); // 获取相对于项目外的路径
+		String realPath = relativePath.replace("/", "\\"); // 转换成绝对路径
+		File file0 = new File(realPath);
+		if (!file0.exists()) {
+			file0.mkdirs();
+		}
+		String filePath = realPath + "\\" + fileName; // 目标excel文件绝对路径
+
+		// 生成excel表
+		createScoreExcel(filePath, scoreInfos);
+		File file = new File(filePath);
+		return DownloadAndUploadUtil.download(request, file, fileName);
+	}
+
+	/**
+	 * 教师端根据考试id获取成绩(学生id为空时获取本次考试所有学生成绩，不为空时获取指定学生成绩) web端、移动端共用接口
+	 * 
+	 * @param session
+	 * @param examId
+	 * @return
+	 */
+	@RequestMapping("/getScore")
+	@ResponseBody
+	public String getScore(HttpSession session, String examId, String studentId) {
+		String[] filter = { "code", "curriculaId", "clazzId", "path", "examId", "teacherId" };
+		return JSONUtil.toObject(scoreService.getScores(examId, studentId), filter).toString();
+	}
+
+	/**
+	 * 家长端查看学生成绩 移动端——家长接口
+	 * 
+	 * @param semesterId
+	 * @param session
+	 * @return
+	 */
+	@RequestMapping("getScoreForStudent")
+	@ResponseBody
+	public String getScoreForStudent(String semesterId, String studentId, String clazzId, HttpSession session) {
+		Map<String, Object> resultMap = new HashMap<String, Object>();
+		if(session.getAttribute("currentUser")==null){
+			throw new RuntimeException();
+		}
+		UserInfo userInfo = (UserInfo) session.getAttribute("currentUser");
+		if (NotEmptyString.isNotEmpty(new String[] {semesterId, studentId, clazzId})==false) {
+			semesterId = semesterService.getCurrentSemester(userInfo.getSchool_id()).getId();
+			studentId = userInfo.getParent_info().getStudent_id();
+			clazzId = userInfo.getClass_id();
+		}
+		resultMap.put("success", true);
+		resultMap.put("scores", scoreService.getScoreForStudent(semesterId, studentId, clazzId));
+		return JSONUtil.toObject(resultMap).toString();
+	}
+
+	/**
+	 * 
+	 * @Title: getScoreByStudentId @Description:
+	 *         安卓端通过学生id，学期id和该学生班级id查询所有成绩 @param @param
+	 *         studentId @param @param semesterId @param @param
+	 *         clazzId @param @return 参数 @return String 返回类型 @throws
+	 */
+	@RequestMapping("/getScoreByStudentId")
+	@ResponseBody
+	public String getScoreByStudentId(String studentId, String semesterId, String clazzId) {
+		Map<String, Object> resultMap = new HashMap<String, Object>();
+		resultMap.put("success", true);
+		resultMap.put("scores", scoreService.getScoreForStudent(semesterId, studentId, clazzId));
+		return JSONUtil.toObject(resultMap).toString();
+	}
+
+	/**
+	 * 根据考试id删除该考试所有成绩 web端接口
+	 * 
+	 * @param id
+	 * @return
+	 */
+	@RequestMapping("deleteByExamId")
+	@ResponseBody
+	public String deleteByExamId(String examId) {
+		Map<String, Object> resultMap = new HashMap<String, Object>();
+		resultMap.put("success", scoreService.deleteByExamId(examId));
+		return JSONUtil.toObject(resultMap).toString();
+	}
+
+	/**
+	 * 生成成绩excel表
+	 * 
+	 * @param filePath
+	 * @param infos
+	 */
+	private void createScoreExcel(String filePath, List<ScoreInfo> infos) {
+		ExcelUtil poi = new ExcelUtil();
+		List<String> headList = new ArrayList<String>();
+		Map<String, String> map = new HashMap<String, String>();
+
+		headList.add("学生学号");
+		headList.add("学生姓名");
+		headList.add("学生成绩");
+		headList.add("班内排名");
+
+		map.put("学生姓名", "studentName");
+		map.put("学生学号", "idCard");
+		map.put("学生成绩", "score");
+		map.put("班内排名", "ranking");
+
+		try {
+			poi.exportExcel("Sheet1", filePath, map, headList, infos, 1, ScoreInfo.class);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * 
+	 * @Title: countScoreByExamId @Description: 根据考试id查询所有成绩并统计 @param @param
+	 *         examId @param @return 参数 @return String 返回类型 @throws
+	 */
+	@RequestMapping("/countScoreByExamId")
+	@ResponseBody
+	public String countScoreByExamId(String examId) {
+		ScoreInfoResult result = scoreService.getScores(examId, null);
+		Map<String, Object> resultMap = ScoreInfoUtil.getCountResult(result.getResult());
+		if (!result.isSuccess()) {
+			resultMap.put("success", false);
+		}
+		return JSONUtil.toObject(resultMap).toString();
+	}
+
+	/**
+	 * 
+	 * @Title: countScoreByExamIdAndClazzId @Description:
+	 *         根据考试id和班级id查询所有成绩并统计 @param @param examId @param @param
+	 *         clazzId @param @return 参数 @return String 返回类型 @throws
+	 */
+	@RequestMapping("/countScoreByExamIdAndClazzId")
+	@ResponseBody
+	public String countScoreByExamIdAndClazzId(String examId, String clazzId) {
+		ScoreInfoResult result = scoreService.getScoreByExamIdAndClazzId(examId, clazzId);
+		Map<String, Object> resultMap = ScoreInfoUtil.getCountResult(result.getResult());
+		if (!result.isSuccess()) {
+			resultMap.put("success", false);
+		}
+		return JSONUtil.toObject(resultMap).toString();
+	}
+
+	/**
+	 * 
+	 * @Title: countScoreByExamIdAndGradeId @Description:
+	 *         根据考试id和年级id查询所有成绩并统计 @param @param examId @param @param
+	 *         gradeId @param @return 参数 @return String 返回类型 @throws
+	 */
+	@RequestMapping("/countScoreByExamIdAndGradeId")
+	@ResponseBody
+	public String countScoreByExamIdAndGradeId(String examId, String gradeId) {
+		ScoreInfoResult result = scoreService.getScoreByExamIdAndGradeId(examId, gradeId);
+		Map<String, Object> resultMap = ScoreInfoUtil.getCountResult(result.getResult());
+		if (!result.isSuccess()) {
+			resultMap.put("success", false);
+		}
+		return JSONUtil.toObject(resultMap).toString();
+	}
+	
+	@RequestMapping("/getFanDiagramByExamId")
+	@ResponseBody
+	public String getFanDiagramByExamId(String examId, String studentId) {
+		Map<String, Object> resultMap = new HashMap<String, Object>();
+		resultMap.put("success", false);
+		ScoreInfoResult result = scoreService.getScores(examId, null);
+		return JSONUtil.toObject(ScoreInfoUtil.getFanDiagram(result.getResult(), studentId)).toString();
+	}
+	
+	@RequestMapping("/getABCD")
+	@ResponseBody
+	public String getABCD(String clazzId, String examId) {
+		ScoreInfoResult result = scoreService.getScoreByExamIdAndClazzId(examId, clazzId);
+		List<ScoreInfo> list = result.getResult();
+		Map<String, Object> resultMap = new HashMap<>();
+		int A = 0, B = 0, C = 0, D = 0;
+		ScoreRank scoreRank_A = new ScoreRank();
+		ScoreRank scoreRank_B = new ScoreRank();
+		ScoreRank scoreRank_C = new ScoreRank();
+		ScoreRank scoreRank_D = new ScoreRank();
+		resultMap.put("success", false);
+		if(list != null) {
+			for(ScoreInfo scoreInfo: list) {
+				float score = Float.parseFloat(scoreInfo.getScore());
+				if(score < 60) {
+					D++;
+				}else if(score < 70 && score >= 60) {
+					C++;
+				}else if(score < 80 && score >= 70) {
+					B++;
+				}else if(score >= 80) {
+					A++;
+				}
+			}
+			scoreRank_A.setName("A");
+			scoreRank_A.setNumber(A);
+			scoreRank_B.setName("B");
+			scoreRank_B.setNumber(B);
+			scoreRank_C.setName("C");
+			scoreRank_C.setNumber(C);
+			scoreRank_D.setName("D");
+			scoreRank_D.setNumber(D);
+			
+			List<ScoreRank> listRank = new ArrayList<ScoreRank>();
+			listRank.add(scoreRank_A);
+			listRank.add(scoreRank_B);
+			listRank.add(scoreRank_C);
+			listRank.add(scoreRank_D);
+			resultMap.put("success", true);
+			resultMap.put("data", listRank);
+		}
+		return JSONUtil.toObject(resultMap).toString();
+	}
+	
+	@RequestMapping("/getExcellentRate")
+	@ResponseBody
+	public String getExcellentRate(String clazzId, String examId, String termId) {
+		Curricula curricula = this.curriculaService.getCurriculaByExamId(examId);
+		List<Score> scoreList = scoreService.getScoreByClazzIdAndCurriculaIdAndTermId(clazzId, curricula.getId(), termId);
+		Map<String,Object> resultMap = new HashMap<>();
+		Set<String> examName = new HashSet<>();
+		List<Integer> list_man = new ArrayList<>();
+		List<String> list_name = new ArrayList<>();
+		for(Score score: scoreList) {
+			examName.add(scoreService.getExamNameByExamId(score.gettScExamId()));
+		}
+		for(String name: examName) {
+			int excellentNumber = 0;
+			for(Score score: scoreList) {
+				if(scoreService.getExamNameByExamId(score.gettScExamId()).equals(name)) {
+					if(score.getScore() > 85) {
+						excellentNumber++;
+					}
+				}
+			}
+			list_name.add(name);
+			list_man.add(excellentNumber);
+		}
+		resultMap.put("success", true);
+		resultMap.put("name", list_name);
+		resultMap.put("value", list_man.size() + 0.0 / scoreList.size());
+		
+		return JSONUtil.toObject(resultMap).toString();
+	}
+	
+	/**用于获取学生各个考试的成绩趋势 
+ 	 * @return
+	 */
+	@RequestMapping("getScoreTrender")
+	@ResponseBody
+	public String getScoreTrenderForStudent(String examId, String clazzId, String termId, String studentId){
+		Map<String, Object> resultMap = new HashMap<>();
+		Curricula curricula = this.curriculaService.getCurriculaByExamId(examId);
+		if(NotEmptyString.isNotEmpty(new String[] {curricula.getId(), termId, studentId, clazzId})){
+			List<String> examName = new ArrayList<String>();
+			List<Float> clazzAverage = new ArrayList<Float>();
+			List<Float> myScore = new ArrayList<Float>();
+			List<Exam> list = examService.getExamByCurriculaIdAndTermId(curricula.getId(), termId, clazzId);
+			List<ScoreInfo> score = new ArrayList<ScoreInfo>();
+			Collections.sort(list);//按照考试时间排序
+			for(Exam exam: list){
+				examName.add(exam.getName());
+				ScoreInfoResult scoreInfo = this.scoreService.getScores(exam.getId() , null);
+				clazzAverage.add(scoreInfo.getAverage());
+				score = this.scoreService.getScores(exam.getId(), studentId).getResult();
+				if(score.size()==1){
+					try{
+						myScore.add(Float.parseFloat(score.get(0).getScore()));
+					}
+					catch (IndexOutOfBoundsException e ){
+						e.printStackTrace();
+					}
+				}
+				else{
+					myScore.add((float) 0);
+				}
+			}
+			
+			List<ExamDiagram> listValue = new ArrayList<ExamDiagram>();
+
+			ExamDiagram examDiagramClazz = new ExamDiagram();
+			ExamDiagram examDiagramMy = new ExamDiagram();
+			
+			examDiagramClazz.setCategory("班级平均分");
+			examDiagramClazz.setValue(clazzAverage);
+			
+			examDiagramMy.setCategory("我的分数");
+			examDiagramMy.setValue(myScore);
+			
+			listValue.add(examDiagramMy);
+			listValue.add(examDiagramClazz);
+			
+			resultMap.put("name", examName);
+			resultMap.put("score", listValue);
+			
+			resultMap.put("success", true);
+			
+			return JSONUtil.toObject(resultMap).toString();
+			
+		}
+		else{
+			resultMap.put("success", false);
+		}
+		return JSONUtil.toObject(resultMap).toString();
+	}
+	
+	
+	@RequestMapping("/getScoreInfoForStudent")
+	@ResponseBody
+	public String getScoreInfoForStudent(String examId, String studentId){
+		Map<String, Object> resultMap = new HashMap<>();
+		resultMap.put("success", false);
+		if(NotEmptyString.isNotEmpty(new String[ ] {examId, studentId})){
+			ScoreInfoResult result =  this.scoreService.getScores(examId, studentId);
+			if(result.getResult().size()>0){
+				
+				Exam exam = this.examService.selectById(examId);
+				ScoreVoForStudent vo = new ScoreVoForStudent();
+				
+				vo.setAverageScore(result.getAverage()+"");
+				vo.setHighestScore(scoreService.getMaxScore(exam.getId()));
+				vo.setLowestScore(scoreService.getMinScore(exam.getId()));
+				vo.setExamName(result.getResult().get(0).getExamName());
+				vo.setExamId(result.getResult().get(0).getExamId());
+				vo.setExamTime(DateFormatUtil.formatDateToDay(exam.getExam_time()));
+				vo.setRankInClass(result.getResult().get(0).getRanking());
+				vo.setScore(result.getResult().get(0).getScore());
+				vo.setType(exam.getType());
+				vo.setSubjectName(this.examService.getSubjectByExamId(examId));
+				
+				resultMap.put("scoreResult", vo);
+				resultMap.put("success", true);
+			}
+		}
+		return JSONUtil.toObject(resultMap).toString();
+	}
+	
+	/*
+	@RequestMapping("getScoreTr123123ender")
+	@ResponseBody
+	public String getScoreTrender(String curriculaId, String termId, String studentId) {
+		List<String> examName = new ArrayList<String>();
+		List<Float> clazz_value = new ArrayList<Float>();
+		List<Float> my_value = new ArrayList<Float>();
+		List<Float> grade_value = new ArrayList<Float>();
+		List<Exam> list = examService.getExamByCurriculaIdAndTermId(curriculaId, termId);
+		Student student = studentService.selectByPrimaryKey(studentId);
+		Clazz clazz = clazzService.clazzFind(student.gettScClassId());
+		Map<String, Object> resultMap = new HashMap<>();
+		for(Exam exam: list) {
+			examName.add(exam.getName());
+			float classAvg = scoreService.getScoreByExamIdAndClazzId(exam.getId(), clazz.getId()).getAverage();
+			float gradeAvg = scoreService.getScoreByExamIdAndGradeId(exam.getId(), clazz.gettScGradeId()).getAverage();
+			float myScore = scoreService.selectByStudentIdAndExamId(studentId, exam.getId()).getScore();
+			clazz_value.add(classAvg);
+			my_value.add(myScore);
+			grade_value.add(gradeAvg);
+		}
+		List<ExamDiagram> list_value = new ArrayList<ExamDiagram>();
+		ExamDiagram examDiagram_clazz = new ExamDiagram();
+		ExamDiagram examDiagram_my = new ExamDiagram();
+		ExamDiagram examDiagram_grade = new ExamDiagram();
+		
+		examDiagram_clazz.setCategory("班级科目平均分");
+		examDiagram_clazz.setValue(clazz_value);
+		list_value.add(examDiagram_clazz);
+		
+		examDiagram_grade.setCategory("年级科目平均分");
+		examDiagram_grade.setValue(grade_value);
+		list_value.add(examDiagram_grade);
+		
+		examDiagram_my.setCategory("我的分数");
+		examDiagram_my.setValue(my_value);
+		list_value.add(examDiagram_my);
+		
+		resultMap.put("name", examName);
+		resultMap.put("score", list_value);
+		
+		return JSONUtil.toObject(resultMap).toString();
+	}*/
+}

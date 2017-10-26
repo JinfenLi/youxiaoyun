@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+		http://www.springframework.org/schema/beans/spring-beans-3.1.xsd 
+		http://www.springframework.org/schema/context 
+		http://www.springframework.org/schema/context/spring-context-3.1.xsd">
+
+	<bean id="photoServiceImpl" class="com.topview.multimedia.service.album.photo.PhotoServiceImpl">
+		<property name="photoSaveProcesses">
+			<list>
+				<ref bean="photoSaveProcess" />
+			</list>
+		</property>
+		<property name="photoUpdateProcesses">
+			<list>
+				<ref bean="photoUpdateProcess" />
+			</list>
+		</property>
+		<property name="photoDeleteProcesses">
+			<list>
+				<ref bean="photoDeleteProcess" />
+			</list>
+		</property>
+		<property name="photoFindAllProcesses">
+			<list>
+				<ref bean="photoFindAllProcess" />
+			</list>
+		</property>
+		<property name="photoFindProcesses">
+			<list>
+				<ref bean="photoFindProcess" />
+			</list>
+		</property>
+		<property name="photoFindNoPagerProcesses">
+			<list>
+				<ref bean="photoFindNoPagerProcess" />
+			</list>
+		</property>
+		<property name="photoUpdateNameProcesses">
+			<list>
+				<ref bean="photoUpdateNameProcess" />
+			</list>
+		</property>
+		<property name="photoUpdateSortAndDescriptionProcesses">
+			<list>
+				<ref bean="photoUpdateSortAndDescriptionProcess"/>
+			</list>
+		</property>
+	</bean>
+
+</beans>

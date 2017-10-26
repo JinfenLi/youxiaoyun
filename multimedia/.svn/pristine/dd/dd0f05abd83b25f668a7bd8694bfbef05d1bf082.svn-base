@@ -1,0 +1,167 @@
+package com.topview.multimedia.vo;
+
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.List;
+
+import com.topview.multimedia.bean.Pager;
+import com.topview.multimedia.po.Evaluation;
+import com.topview.multimedia.po.Group;
+
+/** * @author  Rachel 
+@date 创建时间：2016年9月24日 上午12:03:36 * 
+@version 1.0 * 
+@parameter  *
+ @since  * 
+@return  */
+public class GroupInfo {
+	
+	 private String id;
+
+	    private String createrId;
+
+	    private String classId;
+
+	    private String name;
+	    
+	    private List<String> studentId = new ArrayList<String>();
+	    
+	    private List<String> studentName = new ArrayList<String>();
+	    
+	    private Pager pager;
+	    
+	    private String templateId;
+	    
+	    private Integer groupScore;
+
+		public String getId() {
+			return id;
+		}
+
+		public void setId(String id) {
+			this.id = id;
+		}
+
+		public String getCreaterId() {
+			return createrId;
+		}
+
+		public void setCreaterId(String createrId) {
+			this.createrId = createrId;
+		}
+
+		public String getClassId() {
+			return classId;
+		}
+
+		public void setClassId(String classId) {
+			this.classId = classId;
+		}
+
+		public String getName() {
+			return name;
+		}
+
+		public void setName(String name) {
+			this.name = name;
+		}
+		
+
+	
+		
+
+		public List<String> getStudentId() {
+			return studentId;
+		}
+
+		public void setStudentId(List<String> studentId) {
+			this.studentId = studentId;
+		}
+
+		public Pager getPager() {
+			return pager;
+		}
+
+		public void setPager(Pager pager) {
+			this.pager = pager;
+		}
+		
+	    
+		 public List<String> getStudentName() {
+			return studentName;
+		}
+
+		public void setStudentName(List<String> studentName) {
+			this.studentName = studentName;
+		}
+		
+		
+
+		public String getTemplateId() {
+			return templateId;
+		}
+
+		public void setTemplateId(String templateId) {
+			this.templateId = templateId;
+		}
+		
+		
+
+		public Integer getGroupScore() {
+			return groupScore;
+		}
+
+		public void setGroupScore(Integer groupScore) {
+			this.groupScore = groupScore;
+		}
+
+		public static Group changeToPo(GroupInfo info){
+		    	Group group = new Group();
+		    	if(info.getId()!=null){
+		    		group.setId(info.getId());
+		    	}
+		    	group.setClassId(info.getClassId());
+		    	group.setCreaterId(info.getCreaterId());
+		    	group.setName(info.getName());
+		    	group.setScore(info.getGroupScore());
+		    	return group;
+		    }
+		    
+		    public static List<Group> changeToPo(List<GroupInfo> list){
+		    	
+		    	List<Group> group = new ArrayList<Group>();
+		    	
+		    	if(list.size()>0){
+		    		int size =list.size();
+		    		for(int i=0;i<size;i++){
+		    			group.add(changeToPo(list.get(i)));
+		    		}
+		    	}
+		    	return group;
+		    	
+		    }
+		    
+		    public static GroupInfo changeToVo(Group group){
+		    	GroupInfo info = new GroupInfo();
+		    	info.setId(group.getId());
+		    	info.setClassId(group.getClassId());
+		    	info.setCreaterId(group.getCreaterId());
+		    	info.setName(group.getName());
+		    	info.setGroupScore(group.getScore());
+		    	return info;
+		    }
+		    
+		    public static List<GroupInfo> changeToVo(List<Group> group){
+		    	List<GroupInfo> list = new ArrayList<GroupInfo>();
+		    	if(group.size()>0){
+		    		int size = group.size();
+		    		for(int i=0;i<size;i++){
+		    			list.add(changeToVo(group.get(i)));
+		    		}
+		    	}
+		    	return list;
+		    	
+		    }
+
+}

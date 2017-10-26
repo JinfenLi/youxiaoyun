@@ -1,0 +1,80 @@
+package com.topview.school.po;
+
+import java.util.List;
+
+/***
+ * 
+ * @author zjd
+ */
+public class ZTree {
+	private String id;
+	private String text; // 节点显示的值
+	private String className;
+	private boolean checked = false; // 是否展开节点
+	private List<ZTree> children;// 子节点
+	private boolean leaf = true;//类型标志
+	public ZTree() {
+		super();
+	}
+	
+	public ZTree(String id, String text, String className, boolean checked, List<ZTree> children, boolean leaf) {
+		super();
+		this.id = id;
+		this.text = text;
+		this.className = className;
+		this.checked = checked;
+		this.children = children;
+		this.leaf = leaf;
+	}
+	
+	public String getId() {
+		return id;
+	}
+	
+	public void setId(String id) {
+		this.id = id;
+	}
+	
+	public String getText() {
+		return text;
+	}
+	
+	public void setText(String text) {
+		this.text = text;
+	}
+	
+	public String getClassName() {
+		return className;
+	}
+	
+	public void setClassName(String className) {
+		this.className = className;
+	}
+	
+	public boolean isChecked() {
+		return checked;
+	}
+	
+	public void setChecked(boolean checked) {
+		this.checked = checked;
+	}
+	
+	public List<ZTree> getChildren() {
+		return children;
+	}
+	
+	public void setChildren(List<ZTree> children) {
+		this.children = children;
+	}
+	
+	public boolean isLeaf() {
+		return leaf;
+	}
+	
+	public void setLeaf(boolean leaf) {
+		this.leaf = leaf;
+	}
+	
+
+	
+}

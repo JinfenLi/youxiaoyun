@@ -1,0 +1,237 @@
+package com.topview.school.controller.leave;
+
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.multipart.MultipartFile;
+
+import com.topview.message.service.PushMsgService;
+import com.topview.message.vo.OfflineMessageVo;
+import com.topview.multimedia.bean.Pager;
+import com.topview.school.po.LeaveAccessory;
+import com.topview.school.po.Teacher;
+import com.topview.school.service.clazz.leave.LeaveService;
+import com.topview.school.service.clazz.leave.accessory.LeaveAccessoryService;
+import com.topview.school.service.user.teacher.TeacherService;
+import com.topview.school.util.DateFormatUtil;
+import com.topview.school.util.FileUploadUtil;
+import com.topview.school.util.JSONUtil;
+import com.topview.school.util.UUIDUtil;
+import com.topview.school.vo.FileUploadVo;
+import com.topview.school.vo.User.UserInfo;
+import com.topview.school.vo.leave.LeaveInfo;
+import com.topview.school.vo.leave.result.LeaveInfoResult;
+
+/**
+ * @Description 请假申请controller
+ * @Author <wuyiliang 757210697@qq.com>
+ * @Date 2015年8月16日 下午10:47:04
+ * @CopyRight 2015 TopView Inc
+ * @version V1.0
+ */
+@Controller
+@RequestMapping(value = "/leave", produces = "text/html;charset=UTF-8")
+public class LeaveController {
+
+	@Resource
+	private LeaveService leaveService;
+	@Resource
+	private LeaveAccessoryService leaveAccessoryservice;
+	@Resource
+	private TeacherService teacherService;
+	@Resource
+	private PushMsgService pushMsgService;
+	
+
+	/**
+	 * 家长或老师查看自己的请假申请 老师根据班级id获取整个班的请假申请，家长根据学生id和班级id获取学生的请假申请记录
+	 * 
+	 * @param session
+	 * @param pager
+	 * @return
+	 */
+	@RequestMapping(value = "/seeLeave")
+	@ResponseBody
+	public String seeLeave(HttpSession session, Pager pager, String clazzId,
+			String studentId, Integer status) {
+		// TODO 不建议通过session传参
+			if(session.getAttribute("currentUser")==null){
+					throw new RuntimeException();
+			}
+			session.setAttribute("clazzId", clazzId);
+			session.setAttribute("studentId", studentId);
+			session.setAttribute("status", status);
+			return JSONUtil.toObject(leaveService.getLeave(session, pager))
+					.toString();
+	}
+	
+	
+	/**
+	 * 根据请假申请id获取请假详情
+	 * 
+	 * @param session
+	 * @param leaveId
+	 * @return
+	 */
+	@RequestMapping(value = "/getLeaveByLeaveId")
+	@ResponseBody
+	public String getLeaveByLeaveId(HttpSession session, String leaveId) {
+		if(session.getAttribute("currentUser")==null){
+			throw new RuntimeException();
+		}
+		Map<String, Object> resultMap = new HashMap<String, Object>();
+		LeaveInfoResult result = leaveService.getLeaveByLeaveId(session,
+				leaveId);
+		if (result.isSuccess()) {
+			resultMap.put("leave", result.getResult());
+			resultMap.put("success", true);
+		} else {
+			resultMap.put("success", false);
+		}
+		return JSONUtil.toObject(resultMap).toString();
+	}
+
+	/**
+	 * 老师审核请假申请
+	 * 
+	 * @param session
+	 * @param leaveId
+	 * @param opinion
+	 * @param rejectReason
+	 * @return
+	 */
+	@RequestMapping("/updateLeave")
+	@ResponseBody
+	public String updateLeave(HttpSession session, String leaveId, int opinion,
+			String rejectReason) {
+
+		LeaveInfo info = new LeaveInfo();
+		info.setId(leaveId);
+		info.setStatus(opinion);
+		info.setRejectReason(rejectReason);
+		LeaveInfoResult result = leaveService.updateLeave(session, info); // 更新
+		if (result.isSuccess()) {
+			LeaveInfoResult result2 = leaveService.getLeaveByLeaveId(session,
+					leaveId);
+			if (result2.getResult() != null) {
+				if (result2.getResult().size() > 0) {
+					sendNotice(session, result2.getResult().get(0), 2); // 推送
+				}
+			}
+		}
+		String[] filter = { "code", "result" };
+		return JSONUtil.toObject(result, filter).toString();
+	}
+
+	/**
+	 * 家长端删除未审核请假条
+	 * 
+	 * @param session
+	 * @param leaveId
+	 * @return
+	 */
+	@RequestMapping("deleteLeave")
+	@ResponseBody
+	public String deleteNoCheckLeave(HttpSession session, String leaveId) {
+		String[] filter = { "result", "code" };
+		return JSONUtil.toObject(
+				leaveService.deleteNoCheckLeave(session, leaveId), filter)
+				.toString();
+	}
+
+	/**
+	 * 家长提交请假申请
+	 * 
+	 * @param files
+	 * @param session
+	 * @param request
+	 * @param type
+	 * @param reason
+	 * @param date
+	 * @param parentId
+	 * @param studentId
+	 * @return
+	 * @throws Exception
+	 */
+	@RequestMapping(value = "/sendLeave", method = RequestMethod.POST)
+	@ResponseBody
+	public String saveLeave(
+			@RequestParam(value = "files", required = false) MultipartFile[] files,
+			HttpSession session, HttpServletRequest request, LeaveInfo leaveInfo)
+			throws Exception {
+
+		String[] filter = { "code", "result" };
+		leaveInfo.setId(UUIDUtil.getUUID());
+		leaveInfo.setStatus(1);
+
+		UserInfo userInfo = (UserInfo) session.getAttribute("currentUser");
+		LeaveInfoResult result = leaveService.saveLeave(session, leaveInfo); // 保存请假条文字部分
+
+		if (!result.isSuccess()) {
+			return JSONUtil.toObject(result).toString();
+		}
+
+		// 保存附件
+		if (files != null && files.length > 0) {
+			List<FileUploadVo> vos = FileUploadUtil.uploadFile(files,
+					userInfo.getSchool_id() + "/accessory", request, true);
+			for (int i = 0; i < vos.size(); i++) {
+				LeaveAccessory accessory = new LeaveAccessory();
+				accessory.setId(UUIDUtil.getUUID());
+				accessory.settScLeaveId(leaveInfo.getId());
+				accessory.setType(1);
+				accessory.setUrl(vos.get(i).getRelativePath());
+				leaveAccessoryservice.saveAccessory(accessory);
+			}
+		}
+		sendNotice(session, leaveInfo, 1); // 推送
+		return JSONUtil.toObject(result, filter).toString();
+	}
+
+	/**
+	 * 请假申请推送，type为1时家长推给老师，为2时老师推给家长
+	 * 
+	 * @param session
+	 * @param leaveInfo
+	 * @param type
+	 * @return
+	 */
+	private boolean sendNotice(HttpSession session, LeaveInfo leaveInfo,
+			int type) {
+		UserInfo userInfo = (UserInfo) session.getAttribute("currentUser");
+		Teacher teacher = teacherService
+				.findHeadTeacher(userInfo.getClass_id());
+		if (teacher == null) {
+			return false;
+		}
+		OfflineMessageVo vo = new OfflineMessageVo();
+		vo.setSenderId(userInfo.getUser_id());
+		vo.setStudentId(leaveInfo.getStudentId());
+		if (type == 1) {
+			vo.setReceiverId(teacher.getId());
+		} else {
+			vo.setReceiverId(leaveInfo.getParentId());
+		}
+		vo.setContent(leaveInfo.getId()); // 消息内容为请假申请的id
+		vo.setMessageType("1");
+		vo.setType("3");
+		vo.setStatue("1");
+		vo.setSendTime(DateFormatUtil.formatDateToSeconds(new Date()));
+		pushMsgService.saveOfflineMessage(vo); // 保存进数据库
+		vo.setMessageType("文字");
+		vo.setType("请假申请");
+		pushMsgService.pushMessage(vo); // 推送
+		return true;
+	}
+}

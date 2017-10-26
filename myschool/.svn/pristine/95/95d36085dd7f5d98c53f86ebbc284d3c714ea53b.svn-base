@@ -1,0 +1,65 @@
+ function SubmitFormToSF() { 
+      var sfForm = document.createElement("form"); 
+      document.body.appendChild(sfForm); 
+      var mfInputs = "text1,checkbox1,Select1,Hidden1"; 
+      var sfInputs = "text1_c,checkbox1_c,Select1_c,Hidden1_c"; 
+      var mFInputsArray = mfInputs.split(","); 
+      var sFInputsArray = sfInputs.split(","); 
+      for (i = 0; i < mFInputsArray.length; i++) { 
+        createInput(sfForm, "text", sFInputsArray[i], GetInputValue(document.getElementById(mFInputsArray[i]))) 
+      } 
+      //创建联系时间 
+  
+      //创建隐藏域 
+  
+      sfForm.method = "post"; 
+      sfForm.action = "c.aspx"; 
+      sfForm.submit(); 
+    } 
+    function createInput(sfForm,type,name,value) 
+    { 
+      var tmpInput = document.createElement("input"); 
+      tmpInput.type = type; 
+      tmpInput.name = name; 
+      tmpInput.value = value; 
+      sfForm.appendChild(tmpInput); 
+    } 
+    function GetInputValue(ipt) 
+    { 
+      switch (ipt.type) 
+      { 
+        case "text": 
+          return ipt.value; 
+          break; 
+        case "hidden": 
+          return ipt.value; 
+          break; 
+        case "checkbox": 
+          return ipt.checked; 
+          break; 
+        case "select-one": 
+          return ipt.value; 
+          break; 
+      } 
+    } 
+    function getContratTime() { 
+      var anytime = $("#anytime"); 
+      var afternoon = $("#afternoon"); 
+      var morning = $("#morning"); 
+      var evening = $("#evening"); 
+      if (anytime.checked) { 
+        return "morning,afternoon,evening"; 
+      } else { 
+        if (morning.checked) 
+        { 
+          return morning.val(); 
+        } else if (afternoon.checked) 
+        { 
+          return afternoon.val(); 
+        } else if (evening.checked) 
+        { 
+          return evening.val(); 
+        } 
+        return ""; 
+      } 
+    } 

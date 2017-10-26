@@ -1,0 +1,135 @@
+package com.topview.school.controller.version;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.multipart.MultipartFile;
+
+import com.topview.school.po.School;
+import com.topview.school.po.VersionUpdate;
+import com.topview.school.service.school.SchoolService;
+import com.topview.school.service.version.VersionUpdateService;
+import com.topview.school.util.FileUploadUtil;
+import com.topview.school.util.JSONUtil;
+import com.topview.school.util.NotEmptyString;
+import com.topview.school.vo.FileUploadVo;
+import com.topview.school.vo.version.VersionInfo;
+
+@Controller
+@RequestMapping(value = "version", produces = "text/html;charset=UTF-8")
+public class VersionUpdateController {
+
+	@Resource
+	private VersionUpdateService versionUpdateService;
+	@Resource
+	private SchoolService schoolService;
+
+	/**
+	 * 获取最新版本信息
+	 * 
+	 * @return
+	 */
+	@RequestMapping("/getVersionInfo")
+	@ResponseBody
+	public String getVersionInfo(String device, String schoolId) {
+		Map<String, Object> resultMap = new HashMap<String, Object>();
+		resultMap.put("success", false);
+		List<VersionUpdate> versions = versionUpdateService
+				.getBySchoolIdAndDevice(schoolId, device);
+		if (versions.size() > 0) {
+			VersionInfo info = VersionInfo.changeToVo(versions.get(0));
+			
+			//适配ios 更新下载，
+			if(device.equals("2")){
+				String url = info.getUrl();
+				if(url.startsWith("http://pre.im")==false){
+					info.setUrl((new StringBuilder("http://121.201.16.40:8080/school/downloadApp/ios.html?").append(url)).toString());
+				}
+			}
+			resultMap.put("version", info);
+			resultMap.put("oldestVersion", "2.0.0");
+			resultMap.put("success", true);
+		}
+		return JSONUtil.toObject(resultMap).toString();
+	}
+
+	/**
+	 * 上传新版本
+	 * 
+	 * @param versionUpdate
+	 * @param file
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping(value = "/uploadNewVersion", method = RequestMethod.POST)
+	@ResponseBody
+	public String uploadNewVersion(VersionUpdate versionUpdate,
+			@RequestParam(value = "file", required = false) MultipartFile file,
+			HttpServletRequest request) {
+		Map<String, Object> resultMap = new HashMap<String, Object>();
+		resultMap.put("success", false);
+		String path = "version_update/android";
+		if ("2".equals(versionUpdate.getDevice())) {
+			path = "version_update/ios";
+		}
+		if (file != null && file.getSize() > 0) {
+			FileUploadVo vo = FileUploadUtil.uploadFile(file, path, request,
+					false);
+			
+			if(versionUpdate.getDevice().equals("2")){
+				versionUpdate.setUrl("https://www.youxiaoyun.com.cn"+vo.getRelativePath());
+			}
+			else if (versionUpdate.getDevice().equals("1")){
+				versionUpdate.setUrl(vo.getRelativePath());
+			}
+		}
+		versionUpdate.setUpdateTime(new Date());
+		resultMap.put("success", versionUpdateService.insert(versionUpdate));
+		return JSONUtil.toObject(resultMap).toString();
+	}
+
+
+	/**
+	 * 
+	 * @param schoolName
+	 * @param device
+	 * @return
+	 */
+	@RequestMapping("findLikeSchoolName")
+	@ResponseBody
+	public String findLikeSchoolName(String schoolName, String device) {
+		Map<String, Object> resultMap = new HashMap<String, Object>();
+		List<VersionInfo> versions = new ArrayList<VersionInfo>();
+		if(!NotEmptyString.isNotEmpty(new String[]{schoolName, device})) {
+			resultMap.put("success", false);
+			return JSONUtil.toObject(resultMap).toString();
+		}
+		List<School> schools = schoolService.selectSchoolByNameLike(schoolName);
+		for (School s : schools) {
+			List<VersionUpdate> versionUpdates = versionUpdateService
+					.getBySchoolIdAndDevice(s.getId(), device);
+			if (versionUpdates.size() > 0) {
+				VersionUpdate version = versionUpdates.get(0);
+				VersionInfo info = new VersionInfo();
+				info = VersionInfo.changeToVo(version);
+				info.setSchoolId(s.getId());
+				info.setSchoolName(s.getName());
+				versions.add(info);
+			}
+		}
+		resultMap.put("version", versions);
+		resultMap.put("success", true);
+		return JSONUtil.toObject(resultMap).toString();
+	}
+}

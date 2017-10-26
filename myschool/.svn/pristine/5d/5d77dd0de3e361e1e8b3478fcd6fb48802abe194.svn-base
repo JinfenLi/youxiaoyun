@@ -1,0 +1,153 @@
+package com.topview.school.controller.multimedia.folder;
+
+import java.io.UnsupportedEncodingException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.topview.multimedia.bean.Pager;
+import com.topview.multimedia.service.folder.FolderService;
+import com.topview.multimedia.service.folder.file.FileService;
+import com.topview.multimedia.util.UUIDUtil;
+import com.topview.multimedia.vo.FolderInfo;
+import com.topview.multimedia.vo.result.FolderInfoResult;
+import com.topview.school.util.JSONUtil;
+import com.topview.school.vo.User.UserInfo;
+/** * @author  Rachel 
+@date 创建时间：2016年7月30日 上午11:32:30 * 
+@version 1.0 * 
+@parameter  *
+ @since  * 
+@return  */
+@Controller
+@RequestMapping(value="/folder", produces = "text/html;charset=UTF-8")
+public class FolderController {
+	
+	@Resource
+	private FolderService folderService;
+	@Resource
+	private FileService fileService;
+	
+	/**
+	 * 创建文件夹
+	 * @param session
+	 * @param schoolId
+	 * @param clazzId
+	 * @param info
+	 * @return
+	 * @throws UnsupportedEncodingException 
+	 */
+	@RequestMapping(value="/createFolder")
+	@ResponseBody
+	public String createFolder(HttpSession session, String schoolId,
+			String clazzId,FolderInfo info) {
+		Map<String, Object> resultMap = new HashMap<String, Object>();
+		resultMap.put("success", false);
+		
+		if(schoolId!=null&&!"".equals(schoolId)){
+			info.settMId(schoolId);
+		}else if(clazzId!=null&&!"".equals(clazzId)){
+			info.settMId(clazzId);
+		}
+		info.setId(UUIDUtil.getUUID());
+		
+		FolderInfoResult result = folderService.folderCreate(info);
+		if (result.isSuccess()) {
+			resultMap.put("success", true);
+			resultMap.put("folderId", info.getId());
+		} else {
+			resultMap.put("success", false);
+		}
+		return JSONUtil.toObject(resultMap).toString();
+		
+	}
+	
+	/**
+	 * 删除相册
+	 * 
+	 * @param albumId
+	 * @return
+	 */
+	@RequestMapping("/deleteFolder")
+	@ResponseBody
+	public String deleteAlbum(String folderId) {
+		Map<String, Object> resultMap = new HashMap<String, Object>();
+		FolderInfo info = new FolderInfo();
+		info.setId(folderId);
+		FolderInfoResult result = folderService.folderDelete(info);
+		resultMap.put("success", result.isSuccess());
+		return JSONUtil.toObject(resultMap).toString();
+	}
+	/**
+	 * 获得学校或班级的文件夹
+	 * @param pager
+	 * @param id
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping("/getAllFolders")
+	@ResponseBody
+	public String getFolderById(HttpSession session,Pager pager, String clazzId,
+			HttpServletRequest request){
+		Map<String, Object> resultMap = new HashMap<String, Object>();
+		resultMap.put("success", false);
+		UserInfo userInfo = (UserInfo) session.getAttribute("currentUser");
+		clazzId = userInfo.getClass_id();
+		FolderInfo info = new FolderInfo();
+		info.setPager(pager);
+		if(""!=clazzId&&clazzId!=null){
+			info.settMId(clazzId);
+		}else{
+			info.settMId(userInfo.getSchool_id());
+		}
+		
+		FolderInfoResult result = folderService.folderFindAll(info);
+		List<FolderInfo> folderInfos = result.getInfoResult();
+		if (folderInfos == null || folderInfos.size() <= 0) {
+			resultMap.put("msg", "还没有任何文件夹");
+			
+		}else{
+			resultMap.put("success", true);
+			resultMap.put("folderInfos", folderInfos);
+		}
+		return JSONUtil.toObject(resultMap).toString();
+		
+	}
+	
+	/**
+	 * 查看某个文件夹
+	 * @param folderId
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping("/getFolder")
+	@ResponseBody
+	public String getFolderById( String folderId,
+			HttpServletRequest request){
+		Map<String, Object> resultMap = new HashMap<String, Object>();
+		resultMap.put("success", false);
+		FolderInfo info = new FolderInfo();
+		info.setId(folderId);
+		FolderInfoResult result = folderService.folderFind(info);
+		List<FolderInfo> folderInfos = result.getInfoResult();
+		if (folderInfos == null || folderInfos.size() <= 0) {
+			resultMap.put("msg", "还没有任何文件夹");
+			
+		}else{
+			resultMap.put("success", true);
+			resultMap.put("folderInfos", folderInfos);
+		}
+		return JSONUtil.toObject(resultMap).toString();
+		
+	}
+	
+
+}

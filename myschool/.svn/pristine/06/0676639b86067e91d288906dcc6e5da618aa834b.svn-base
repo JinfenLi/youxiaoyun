@@ -1,0 +1,25 @@
+/**
+ * 
+ * Author: ccDeng
+ * Contact: 173634610@qq.com
+ * Description: 查看本校所有老师选课情况的store
+ * 
+ */
+Ext.define("School.store.exam.GetOtherCurriculaMgr", {
+	extend: "Ext.data.Store",
+	requires: [
+		"School.model.exam.GetOtherCurriculaMgr"
+	],
+	model: "School.model.exam.GetOtherCurriculaMgr",
+
+	proxy: {
+		type: "postproxy",
+		url: zyHost + 'curricula/getCurriculaInfo.action',
+		reader: {
+			type: 'json',
+			totalProperty: 'totalCount', 
+			root: 'curriculaInfo'
+		}
+	},
+	autoload: false
+});

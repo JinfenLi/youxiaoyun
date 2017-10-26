@@ -1,0 +1,231 @@
+package com.topview.school.controller.exam;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpSession;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.topview.message.util.UUIDUtil;
+import com.topview.school.po.ExamTemplet;
+import com.topview.school.po.ValidationResult;
+import com.topview.school.service.clazz.curricula.CurriculaVariableService;
+import com.topview.school.service.clazz.exam.ExamService;
+import com.topview.school.service.school.semester.SemesterService;
+import com.topview.school.util.JSONUtil;
+import com.topview.school.util.NotEmptyString;
+import com.topview.school.util.ValidationUtil;
+import com.topview.school.vo.User.UserInfo;
+import com.topview.school.vo.curricula.CurriculaVariableInfo;
+import com.topview.school.vo.exam.ExamInfo;
+
+/**
+ * @Description 考试Controller
+ * @Author <wuyiliang 757210697@qq.com>
+ * @Date 2015年8月4日 上午10:43:07
+ * @CopyRight 2015 TopView Inc
+ * @version V1.0
+ */
+@RequestMapping(value = "/exam", produces = "text/html;charset=UTF-8")
+@Controller
+public class ExamController {
+
+	@Autowired
+	private ExamService examService;
+	@Resource
+	private SemesterService semesterService;
+	@Resource
+	private CurriculaVariableService curriculaVariableService;
+
+	/**
+	 * 根据选课id（单独某个班开考）或课程id(选了这门课的所有班级开考)创建考试
+	 * 
+	 * @param session
+	 * @param info
+	 * @return
+	 */
+	@RequestMapping("/createExam")
+	@ResponseBody
+	public String createExam(HttpSession session, ExamInfo info,
+			String curriculaId, String semesterId) {
+		Map<String, Object> resultMap = new HashMap<String, Object>();
+		ValidationResult res = ValidationUtil.validateEntity(info);
+		if(res.isHasErrors()) {
+			resultMap.put("success", false);
+			resultMap.put("errorMsg", res.getErrorMsg());
+			return JSONUtil.toObject(resultMap).toString();
+		}
+		boolean flag = true;
+		if (curriculaId != null && !"".equals(curriculaId)) {
+			List<CurriculaVariableInfo> infos = curriculaVariableService
+					.selectBySemesterIdAndCurriculaId(semesterId, curriculaId);
+			for (int i = 0; i < infos.size(); i++) {
+				info.setCurriculaVariableId(infos.get(i).getId());
+				info.setId(UUIDUtil.getUUID());
+				if (!examService.createExam(info)) {
+					flag = false;
+					break;
+				}
+			}
+		} else {
+			info.setId(UUIDUtil.getUUID());
+			flag = examService.createExam(info);
+		}
+		resultMap.put("examId", info.getId());
+		resultMap.put("success", flag);
+		return JSONUtil.toObject(resultMap).toString();
+	}
+
+	/**
+	 * 删除考试
+	 * 
+	 * @param session
+	 * @param id
+	 * @return
+	 */
+	@RequestMapping("/deleteExam")
+	@ResponseBody
+	public String deleteExam(HttpSession session, String id) {
+		Map<String, Object> resultMap = new HashMap<String, Object>();
+		resultMap.put("success", examService.deleteExam(id));
+		return JSONUtil.toObject(resultMap).toString();
+
+	}
+
+	/**
+	 * 修改考试信息
+	 * 
+	 * @param session
+	 * @param examInfo
+	 * @return
+	 */
+	@RequestMapping("updateExam")
+	@ResponseBody
+	public String updateExam(HttpSession session, ExamInfo examInfo) {
+		Map<String, Object> resultMap = new HashMap<String, Object>();
+		resultMap.put("success", examService.updateExam(examInfo));
+		return JSONUtil.toObject(resultMap).toString();
+	}
+
+	/**
+	 * 单条件或多条件查询考试记录
+	 * 
+	 * @param gradeId
+	 * @param clazzId
+	 * @param curriculaId
+	 * @param semesterId
+	 * @param subjectId
+	 * @return
+	 */
+	@RequestMapping("selectExamRecord")
+	@ResponseBody
+	public String selectExamRecord(String curriculaVariableId, String gradeId,
+			String clazzId, String curriculaId, String semesterId,
+			String subjectId, String teacherId, String type, Integer start, Integer limit) {
+		
+		Map<String, Object> resultMap = new HashMap<String, Object>();
+		Map<String, Object> map = new HashMap<String, Object>();
+
+		if(!NotEmptyString.isAtLeastOneNotEmpty(new String[]{curriculaVariableId,
+				subjectId, clazzId, semesterId, gradeId, curriculaId, teacherId})) {
+			resultMap.put("msg", "查询条件不足");
+			resultMap.put("success", true);
+			return JSONUtil.toObject(resultMap).toString();
+		}
+		map.put("curriculaVariableId", curriculaVariableId);
+		map.put("subjectId", subjectId);
+		map.put("clazzId", clazzId);
+		map.put("semesterId", semesterId);
+		map.put("gradeId", gradeId);
+		map.put("curriculaId", curriculaId);
+		map.put("teacherId", teacherId);
+		map.put("type", type);
+		map.put("offset", start);
+		map.put("limit", limit);
+		
+		resultMap.put("exams", examService.selectExamRecord(map));
+		resultMap.put("totalCount", examService.selectExamRecordCount(map));
+		resultMap.put("success", true);
+		String[] filter={"createTime"};
+		return JSONUtil.toObject(resultMap,filter).toString();
+	}
+	
+	@RequestMapping("/getTeacherAllExam")
+	@ResponseBody
+	public String getTeacherAllExam(String teacherId,String semesterId,Integer start, Integer limit){
+		Map<String, Object> resultMap = new HashMap<String, Object>();
+		Map<String, Object> map = new HashMap<String, Object>();
+
+		if(!NotEmptyString.isAtLeastOneNotEmpty(new String[]{semesterId, teacherId})) {
+			resultMap.put("msg", "查询条件不足");
+			resultMap.put("success", true);
+			return JSONUtil.toObject(resultMap).toString();
+		}
+		map.put("semesterId", semesterId);
+		map.put("teacherId", teacherId);
+		map.put("offset", start);
+		map.put("limit", limit);
+		
+		resultMap.put("exams", examService.selectAllTeacherExam(map));
+		resultMap.put("totalCount", examService.selectAllTeacherRecordCount(map));
+		resultMap.put("success", true);
+		return JSONUtil.toObject(resultMap).toString();
+	}
+	 
+	@RequestMapping("/updateExamStatus")
+	@ResponseBody
+	public String updateExamStatus(HttpSession session, String commitStatus,String examId){
+		HashMap<String,Object> resultMap = new HashMap<String, Object>();
+		resultMap.put("success", false);
+		if(NotEmptyString.isNotNullString(commitStatus)&&NotEmptyString.isNotNullString(examId)){
+			try{
+				int status=Integer.parseInt(commitStatus);
+				UserInfo userInfo = (UserInfo) session.getAttribute("currentUser");
+				String userId = userInfo.getUser_id();
+				resultMap.put("success", this.examService.updateExamStatus(userId, status, examId));
+			}
+			catch(Exception e ){
+				e.printStackTrace();
+			}
+		}	
+		return JSONUtil.toObject(resultMap).toString();
+	}
+	
+	@RequestMapping("/getExamByIdForTeacher")
+	@ResponseBody
+	public String getExamById(String examId){
+		HashMap<String,Object> resultMap = new HashMap<String, Object>();
+		resultMap.put("success", false);
+		if(NotEmptyString.isNotNullString(examId)){
+			resultMap.put("success", true);
+			System.out.println(examId);
+			resultMap.put("exam", ExamInfo.changeToVo(this.examService.selectById(examId)));
+		}
+		return JSONUtil.toObject(resultMap).toString();
+	}
+	
+	@RequestMapping("addExamTemplet")
+	@ResponseBody
+	public String addExamTemplet(HttpSession session, ExamTemplet examTemplet) {
+		Map<String, Object> resultMap = new HashMap<String, Object>();
+		resultMap.put("success", examService.addExamTemplet(examTemplet));
+		return JSONUtil.toObject(resultMap).toString();
+	}
+	
+	@RequestMapping("showExamTemplet")
+	@ResponseBody
+	public String showExamTemplet(HttpSession session) {
+		Map<String, Object> resultMap = new HashMap<String, Object>();
+		List<ExamTemplet> examTemplets = examService.getAllExamTemplet();
+		resultMap.put("success", true);
+		resultMap.put("examTemplets", examTemplets);
+		String[] filter={"createTime"};
+		return JSONUtil.toObject(resultMap,filter).toString();
+	}
+}

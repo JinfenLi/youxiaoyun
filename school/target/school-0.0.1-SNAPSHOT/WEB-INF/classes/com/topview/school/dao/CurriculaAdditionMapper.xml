@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.topview.school.dao.CurriculaAdditionMapper">
+
+	<resultMap id="BaseResultMap" type="com.topview.school.po.CurriculaAddition">
+		<id column="id" jdbcType="CHAR" property="id" />
+		<result column="id" jdbcType="INTEGER" property="id" />
+		<result column="comment" jdbcType="VARCHAR" property="comment" />
+		<result column="t_sc_semester_id" jdbcType="VARCHAR" property="semesterId" />
+	</resultMap>
+
+	<select id="selectByPrimaryKey" parameterType="java.lang.String"
+		resultMap="BaseResultMap">
+		select
+		*
+		from t_sc_curricula_addition
+		where id =
+		#{id,jdbcType=CHAR}
+	</select>
+
+	<delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+		delete from
+		t_sc_curricula_addition
+		where id = #{id,jdbcType=CHAR}
+	</delete>
+
+	<insert id="insert" parameterType="com.topview.school.po.CurriculaAddition">
+		insert into
+		t_sc_curricula_addition (id, comment,
+		t_sc_semester_id)
+		values
+		(#{id,jdbcType=CHAR}, #{comment,jdbcType=CHAR},
+		#{semesterId,jdbcType=CHAR}
+		)
+	</insert>
+
+	<insert id="insertSelective" parameterType="com.topview.school.po.CurriculaAddition">
+		insert into t_sc_curricula_addition
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				id,
+			</if>
+			<if test="comment != null">
+				comment,
+			</if>
+			<if test="semesterId != null">
+				t_sc_semester_id,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				#{id,jdbcType=CHAR},
+			</if>
+			<if test="comment != null">
+				#{comment,jdbcType=CHAR},
+			</if>
+			<if test="semesterId != null">
+				#{semesterId,jdbcType=VARCHAR},
+			</if>
+		</trim>
+	</insert>
+
+
+	<update id="updateByPrimaryKey" parameterType="com.topview.school.po.CurriculaAddition">
+		update
+		t_sc_curricula_addition
+		set comment = #{comment, jdbcType=VARCHAR}
+		where id = #{id,jdbcType=CHAR}
+	</update>
+
+	<select id="selectBySemesterId" parameterType="java.lang.String" resultMap="BaseResultMap">
+		select * from t_sc_curricula_addition where t_sc_semester_id = #{semesterId,
+		jdbcType=VARCHAR}
+	</select>
+</mapper>

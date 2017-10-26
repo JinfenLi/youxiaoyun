@@ -1,0 +1,32 @@
+/*
+*照片管理界面的相关css设置
+*包括设置了照片的浮动
+* 文字溢出处理等等
+ */
+.passed-photolist, .nopass-photolist {
+	float: left;
+	display: block;
+	width: 180px;
+	height: 300px;
+	margin-bottom: 50px;
+	padding: 10px;
+}
+.passed-photolist p, .nopass-photolist p {
+	text-align: center;
+	overflow: hidden;
+	line-height: 20px;
+}
+.ellpsis{
+	-o-text-overflow:ellpsis;
+	text-overflow: ellpsis;
+	-moz-biding: url("ellpsis.xml#ellpsis");
+	white-space: nowrap;
+	overflow: hidden;
+}
+.passed-tag, .nopass-tag {
+	float: right;
+}
+
+.selectedPhoto {
+	border: green 2px solid;
+}

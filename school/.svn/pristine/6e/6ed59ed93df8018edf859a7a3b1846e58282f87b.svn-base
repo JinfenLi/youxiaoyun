@@ -1,0 +1,221 @@
+package com.topview.school.service.user.teacher;
+
+import java.util.List;
+import java.util.Map;
+
+import com.topview.school.po.Teacher;
+import com.topview.school.vo.User.TeacherExcelInfo;
+import com.topview.school.vo.User.TeacherVo;
+import com.topview.school.vo.User.UserInfo;
+import com.topview.school.vo.User.result.TeacherInfoResult;
+
+public interface TeacherService {
+
+	/**
+	 * 
+	 * @Title: getMonitorId
+	 * @Description: TODO
+	 * @param @param gradeId
+	 * @param @return
+	 * @return String
+	 * @throws
+	 */
+	public String getMonitorId(String gradeId);
+
+	/**
+	 * 根据主键id查询教师信息
+	 * 
+	 * @param teacherId
+	 * @return
+	 */
+	public TeacherInfoResult teacherFindById(String teacherId);
+
+	/**
+	 * 根据主键查询教师
+	 * 
+	 * @param id
+	 * @return
+	 */
+	public Teacher selectTeacherById(String id);
+
+	/**
+	 * 更新教师信息
+	 * 
+	 * @param teacher
+	 * @return
+	 */
+	public boolean updateTeacherInfo(Teacher teacher);
+
+	/**
+	 * 根据班级id查询该班班主任
+	 * 
+	 * @param classId
+	 * @return
+	 */
+	public Teacher findHeadTeacher(String classId);
+
+	/**
+	 * 创建空的教师excel表格
+	 * 
+	 * @param path
+	 * @return
+	 */
+	public boolean createNullExcel(String path);
+
+	/**
+	 * 解析上传的教师excel表
+	 * 
+	 * @param fileName
+	 * @param realPath
+	 * @param userInfo
+	 * @return
+	 */
+	public boolean uploadTeacherInfo(String fileName, String realPath,
+			UserInfo userInfo,List<Teacher> teacherlists);
+
+	/**
+	 * 根据班级id或者年级id或者学校id查询班主任、级长或学校下的所有老师
+	 * 
+	 * @param id
+	 * @return
+	 */
+	public List<Teacher> getTeacher(Map<String, Object> map);
+
+	/**
+	 * 根据部门id（科室id）获取老师
+	 * 
+	 * @param id
+	 * @return
+	 */
+	public List<Teacher> selectTeacherByDepartmentId(String id);
+
+	/**
+	 * 根据学校id获取教师数量
+	 * 
+	 * @param schoolId
+	 * @return
+	 */
+	public int selectCount(String schoolId);
+
+	/**
+	 * 根据班级id获取年级id取消已有的班主任或级长 ： key 分别为clazzId和gradeId
+	 * 
+	 * @param map
+	 * @return
+	 */
+	public boolean cancelPosition(Map<String, Object> map);
+
+	/**
+	 * 根据手机号查询教师
+	 * 
+	 * @param phone
+	 * @return
+	 */
+	public Teacher findByPhone(String phone);
+
+	/**
+	 * 修改教师密码
+	 * 
+	 * @param teacher
+	 * @return
+	 */
+	public boolean updatePassword(Teacher teacher);
+
+	/**
+	 * 增加职位
+	 * 
+	 * @Title: addPosition
+	 * @param positionId
+	 *            职位id
+	 * @param teacherId
+	 *            老师id
+	 * @return boolean
+	 * @throws
+	 */
+	public boolean addPosition(String positionId, String teacherId);
+
+	/**
+	 * 删除职位
+	 * 
+	 * @Title: deletePosition
+	 * @param positionId
+	 *            职位id
+	 * @param teacherId
+	 *            老师id
+	 * @return boolean
+	 * @throws
+	 */
+	public boolean deletePosition(String positionId, String teacherId);
+	
+	/**
+	 * 根据职位id查询职位下的所有老师
+	 * @param map
+	 * @return
+	 */
+	public List<Teacher> selectTeacherByPositionId(String positionId, Integer start, Integer limit);
+	
+	/**
+	 * 根据职位id查询该职位教师的数量
+	 * @param positionId
+	 * @return
+	 */
+	public int getCountByPositionId(String positionId);
+
+	/**
+	 * 根据多条件模糊查询
+	 * @param param
+	 * @return
+	 */
+	public List<TeacherVo> findLike(Map<String, Object> param);
+
+	/**
+	 * 删除或将教师账号置为无效
+	 * @param teacherId
+	 */
+	public void delete(String teacherId);
+	
+	/**
+	 * 单独添加一个教师
+	 * @param vo
+	 * @return
+	 */
+	public boolean addTeacher(TeacherVo vo);
+	
+	public List<Teacher> getAllTeacher();
+	
+	/**
+	 * @dateTime 2016年6月2日下午12:05:34
+	 * @author zjd
+	 * @description 根据学校id获取该学校所有的教师
+	 */
+	public List<Teacher> getTeacherBySchoolId(String schoolId);
+	
+	/**
+	 * @dateTime 2016年6月2日下午12:07:01
+	 * @author zjd
+	 * @description 创建教师Excel
+	 */
+	public boolean createTeacherExcel(String filePath,List<TeacherExcelInfo> sapis);
+
+		/**
+	 * @dataTime 2016年11月16日 
+	 * @param teacherId
+	 * @return
+	 */
+	public String newDeleteTeacher(String teacherId);
+
+	/**
+	 * @dateTime 2016年11月18日下午6:53:54
+	 * @author zjd
+	 * @description 根据学校id和老师姓名模糊搜索
+	 */
+	public List<Teacher> selectTeacherByschoolIdAndLikeName(String schoolId, String name);
+
+	/**
+	 * 判断此老师是否已登记
+	 * @param studentName
+	 * @param parentPhone
+	 * @return
+	 */
+	public Teacher judgeTeacher(String phone);
+}

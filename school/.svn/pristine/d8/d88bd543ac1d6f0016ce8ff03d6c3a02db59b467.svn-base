@@ -1,0 +1,64 @@
+package com.topview.school.service.evaluation;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+
+import org.apache.log4j.Logger;
+import org.springframework.stereotype.Service;
+
+import com.topview.multimedia.dao.EvaluationTemplateMapper;
+import com.topview.multimedia.dao.EvaluationTemplateTeacherMapper;
+import com.topview.multimedia.po.EvaluationTemplateTeacher;
+import com.topview.multimedia.service.evaluation.EvaluationProcess;
+import com.topview.multimedia.service.evaluation.EvaluationProcessContext;
+import com.topview.school.dao.user.TeacherMapper;
+import com.topview.school.po.Teacher;
+//import com.topview.school.dao.user.TeacherMapper;
+//import com.topview.school.po.Teacher;
+
+/** * @author  Rachel 
+@date 创建时间：2016年9月21日 下午9:22:19 * 
+@version 1.0 * 
+@parameter  *
+ @since  * 
+@return  */
+@Service
+public class TemplateSaveProcess implements EvaluationProcess {
+
+	@Resource
+	private EvaluationTemplateMapper etm;
+	@Resource
+	private EvaluationTemplateTeacherMapper ettm;
+	@Resource
+	private TeacherMapper tm;
+	
+	private static final Logger logger = Logger.getLogger(TemplateSaveProcess.class);
+	@Override
+	public boolean doProcess(EvaluationProcessContext context) {
+		try {
+			EvaluationTemplateTeacher ett = new EvaluationTemplateTeacher();
+			ett.setTemplateId(context.getEti().getId());
+			String schoolId = context.getEti().getSchoolId();
+			Map<String,Object> params = new HashMap<String,Object>();
+			params.put("t_sc_school_id", schoolId);
+			Map<String, Object> param = new HashMap<String, Object>();
+			param.put("params", params);
+		    List<Teacher> teacher = tm.selectByParameters(param);
+		   for(Teacher t : teacher){
+				ett.setUserId(t.getId());
+			ettm.insert(ett);
+			}
+			context.getEtir().setSuccess(true);
+			return true;
+		} catch (Exception e) {
+			logger.error("save template's users fail"+e.getMessage());
+			e.printStackTrace();
+			context.getEtir().setSuccess(false);
+			return false;
+		}
+	}
+
+}

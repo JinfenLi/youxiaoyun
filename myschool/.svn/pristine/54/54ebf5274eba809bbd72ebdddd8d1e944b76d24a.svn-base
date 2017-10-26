@@ -1,0 +1,375 @@
+/**
+ * 
+ * Author: 张展宇
+ * Contact: k3note2@gmail.com
+ * Description: 新闻发布控制器
+ * 
+ */
+Ext.define("School.controller.news.NewsPublish", {
+	extend: "Ext.app.Controller",
+	views: [
+		"news.PublishNews",
+	],
+
+	init: function(application) {
+		this.control({
+
+			//页面渲染后，开始加载通过iframe嵌入ueditor编辑器
+			"publishnews": {
+				afterrender: function(component) {
+					this.afterRender(component);
+				}
+			},
+
+			//预览新闻
+			"publishnews #previewbtn": {
+
+				click: function(button) {
+					this.previewNews(button);
+				}
+			},
+
+			//确认发布新闻
+			"previewnews button#save": {
+				click: function(button) {
+					this.saveNews(button);
+				}
+
+			}
+		});	
+	},
+
+	afterRender: function(component) {
+
+		var form = component.down("form"),					
+			html = '<iframe src="ueditor.html" frameborder=0 width=100% height=100% ';
+		
+		switch(component.getItemId()) {
+
+			//年级新闻
+			case "publishclassnews": 
+				html += 'id="classNews"></iframe>';
+				form.remove(form.down("#newscombo"));
+				form.remove(form.down("#selectedschools"));
+				break;
+
+			//校园新闻
+			case "publishschoolnews": 
+				html += 'id="schoolNews"></iframe>';
+				form.remove(form.down("#selectedschools"));
+				break;
+
+			//校园简介
+			case "publishschoolsummy": 
+				html += 'id="schoolSummy"></iframe>';
+				form.remove(form.down("#title"));
+				form.remove(form.down("#newscombo"));
+				form.remove(form.down("#selectedschools"));
+				form.down("#date").hide();
+				break;
+
+			//教育热讯
+			case "publishnews": 
+
+				html += 'id="schoolHotNews"></iframe>';
+				form.remove(form.down("#newscombo"));
+
+				//增加右边的那棵区域管理的树
+				component.add({
+
+					region: "east",
+					title: "学校选择",
+					collapsible: true,
+					width: 200,
+					style: {
+						borderLeft: "3px #abcdef solid"
+					},
+					layout: "fit",
+					items: [
+						{
+							xtype: "selectschool"
+						}
+					]
+				});							
+				break;
+			default: 
+				return 0;
+
+		}
+
+		component.down("#center").add({
+			xtype: "panel",
+			html: html
+		});
+	},
+
+	previewNews: function(button) {
+
+		var newsType, //新闻类型；
+			ueditor;  //编辑器实例
+
+
+		//如果ueditor还没准备就绪，则提示用户正在加载，请稍候
+		if(!zy_ueditorReady) {
+			School.util.Util.showWarningMsg("正在加载相关文件，请稍候再试...");
+			return 0;
+		}
+
+		
+
+		switch(button.up("publishnews").getItemId()) {
+			case "publishclassnews":
+				newsType = "classNews";
+				break;
+			case "publishschoolnews":
+				newsType = "schoolNews";
+				break;
+			case "publishschoolsummy":
+				newsType = "schoolSummy";
+				break;
+			case "publishnews":
+				newsType = "schoolHotNews";
+				break;
+			default: 
+				break;
+		}
+
+		var ueditor = $("#" + newsType)[0].contentWindow.UE;
+
+		//创建一个预览新闻的窗口实例
+        var previewWin = Ext.create("School.view.news.PreviewNews", {
+          itemId: newsType
+        });
+
+        //为该实例添加一个panel,并且他的html是一个iframe
+        previewWin.add({
+            xtype: "panel",
+            html: '<iframe src="preview.html" id="previewWin" frameborder=0 width=100% height=100%></iframe>'
+        });
+
+        //获取新闻内容
+        var content = ueditor.getEditor('editor').getContent();
+
+        //将新闻内容放预览窗口里面
+        setTimeout(function() {
+          var child = $("#previewWin")[0].contentWindow;
+          child.$(".container .row .col-md-12").html(content);
+          child.$("img").addClass("img-responsive");
+        }, 2000);
+	},
+
+	saveNews: function(button) {
+
+		var requestUrl = zyHost + "article/sendArticle.action",	
+			type = "", 	
+			form = {},		
+			frameId = "",
+			params = {};	
+
+		switch(button.up("previewnews").getItemId()) {
+
+			//校园新闻
+			case "schoolNews":
+				frameId = "#schoolNews";
+				type = "publishschoolnews";
+				params = {
+					type: Ext.ComponentQuery.query("#publishschoolnews")[0].down("form").getValues().type,
+			        title: Ext.ComponentQuery.query("#" + type)[0].down("#title").getValue(),
+			        schoolId: zy_schoolId
+				};
+
+				break;
+
+			//年级新闻
+			case "classNews": 
+				frameId = "#classNews";
+				type = "publishclassnews";
+				params = {
+					type: "educate",
+					title: Ext.ComponentQuery.query("#" + type)[0].down("#title").getValue(),
+					gradeId: Ext.ComponentQuery.query("#classnews")[0].down("#mygrades").getValue()
+				};
+				break;
+
+			//校园简介
+			case "schoolSummy":
+				frameId = "#schoolSummy";
+				type = "publishschoolsummy";
+				params = {
+					type: "summy",
+			        title: "校园简介",
+			        schoolId: zy_schoolId
+				};
+				break;
+
+			//教育热讯
+			case "schoolHotNews":
+				frameId = "#schoolHotNews";
+				type = "publishnews";
+				params = {
+					type: "teaching",
+					title: Ext.ComponentQuery.query("#" + type)[0].down("#title").getValue(),
+					schoolId: zy_selectedSchools.join(",")
+				};
+				if(params.schoolId === "") {
+					School.util.Util.showErrorMsg("您没有选择可见学校，无法提交！");
+					return 0;
+				}
+				break;
+			default: 
+				break;
+		}
+
+		//检测表单信息是否填写完整
+		form = Ext.ComponentQuery.query("#" + type)[0].down("form");
+		if(!form.getForm().isValid()) {
+			School.util.Util.showErrorMsg("新闻标题或发布日期不能为空!");
+			return 0;
+		}
+
+		//如果表单验证通过，则开始提交新闻
+		var UEWindow = $(frameId)[0].contentWindow,
+			content = UEWindow.UE.getEditor('editor').getContent(),
+			imgUrl = "";
+
+	    //把新闻内容放到隐藏div里，这样我们就可以用dom操作其属性
+        //比如，为所有的img元素增加增加一个"img-responsive"类名;
+        UEWindow.$(".div-hidden").html(content);
+
+        //使图片响应式并且居中
+        UEWindow.$(".div-hidden img").addClass("img-responsive center-block");
+
+        //修改图片的路径
+        UEWindow.$(".div-hidden img").each(function(i) {
+          var start = this.src.indexOf("ueditorImg"),
+          	length = this.src.length;
+          this.src = "/" + this.src.substring(start, length);
+          //如果有图片，则把第一张图片的地址取出来
+          if (i === 0) {
+            imgUrl = "/" + this.src.substring(start, length);
+          }
+        });
+
+        //然后把隐藏div的内容取出来，赋值给content，提交到后台
+        content = UEWindow.$(".div-hidden")[0].innerHTML;
+        console.log(content);
+        //重新清空隐藏的.div-hidden的内容
+        UEWindow.$(".div-hidden").html("");
+
+        //如果没有插入图片，则提示用户
+        if(!imgUrl) {
+          School.util.Util.showErrorMsg("请在新闻内容里插入一张图片！");
+          return;
+        }
+
+     
+
+
+       params.content = content;
+       params.createTime = form.getValues().createTime;
+       params.path = imgUrl;
+
+       console.log(params);
+
+       //添加一层遮罩效果
+       Ext.getBody().mask("正在提交新闻，请等待...", "splashscreen");
+
+        //开始通过ajax方法提交新闻
+      	Ext.Ajax.request({
+			url: zyHost + requestUrl,
+			timeout: 60000,
+			params: params,
+			success: function(conn,response,options,eOpts) {
+				//去除遮罩
+      			Ext.getBody().unmask();
+
+				var result = School.util.Util.decodeJSON(conn.responseText);
+
+				//如果保存成功
+				if(result.success) {
+
+					//关闭预览窗口
+      				button.up("window").destroy();
+					School.util.Util.showSuccessMsg("新闻提交成功!");
+		            //关闭新闻发布窗口
+		            form.up("publishnews").close();
+
+		   			var mainPanel = Ext.ComponentQuery.query("mainpanel")[0];
+
+		           	switch(type) {
+
+		           		//校园新闻
+		           		case "publishschoolnews": 
+		           			//激活学校新闻面板
+						    var title = "校园新闻",
+						        xtype = "newsmgr"; 
+					       School.util.AddTab.addTab(mainPanel, title, xtype, "", "schoolnews");
+
+					        //假如存在了校园新闻窗口，则重新对它的新闻类型赋值，从而刷新数据
+					        var schoolnews = Ext.ComponentQuery.query("#schoolnews")[0];
+					        if (schoolnews) {
+					          schoolnews.down("#newscombo").setValue(params.type);  
+					          schoolnews.getStore().reload({
+					          	params: {
+					          		type: params.type,
+					          		schoolId: zy_schoolId
+					          	}
+					          });    
+					        }
+		           			break;
+
+		           		//年级新闻
+		           		case "publishclassnews": 
+				            var title = "年级新闻",
+				              xtype = "newsmgr"; 
+				            School.util.AddTab.addTab(mainPanel, title, xtype, "", "classnews");
+
+				            var classnews = Ext.ComponentQuery.query("#classnews")[0];
+
+				            //把当前班级的id赋值到班级新闻面板，并且重新刷新数据
+				            if (classnews) {
+				              classnews.down("#mygrades").setValue(params.gradeId);
+				              classnews.getStore().reload({
+				                params: {
+				                  type: "educate",
+				                  gradeId: params.gradeId
+				                }
+				              });
+				            }
+		           			break;
+
+		           		//校园简介
+		           		case "publishschoolsummy": 
+					        var schoolsummy = Ext.ComponentQuery.query("schoolsummy")[0];
+
+					        //假如已经存在了校园简介界面，则把它关闭
+					        if(schoolsummy) {
+					        	schoolsummy.close();
+					        } 
+
+					        //重新打开校园简介
+						    var title = "校园简介",
+						        xtype = "schoolsummy"; 
+					        School.util.AddTab.addTab(mainPanel, title, xtype);
+		           			break;
+
+		           		//教育热讯
+		           		case "publishnews": 
+		           			//将已选则的学校重新置空
+		           			zy_selectedSchools = [];
+		           			break;
+		            }
+
+				} else {
+					School.util.Util.showErrorMsg("新闻提交失败!");
+				}
+			},
+			failure: function(conn,response,options,eOpts) {
+				//去除遮罩
+      			 Ext.getBody().unmask();
+				School.util.Util.showErrorMsg("链接服务器失败！");
+			}
+		});
+	}
+
+});

@@ -1,0 +1,41 @@
+/*departMgr.css*/
+.teachers {
+	 font-family: "宋体";
+	 font-weight: 600;
+	 font-size: 14px;
+}
+
+.teachers .staffs {
+	width:500px;
+	color: green;
+	border-bottom:2px dashed green;
+	padding: 10px 0;
+	float:left;
+	margin-bottom: 10px;
+}
+
+.teachers .title {
+	font-size: 18px;
+	text-align: center;
+	width: 100%;
+	font-family: "黑体"
+}
+
+.teachers .checkbox {
+	 width: 100px;
+	 float: left
+}
+
+.teachers .checkbox label{
+	cursor: pointer
+}
+.teachers .others {
+	width:500px;
+	border-bottom: 2px dashed red;
+	float: left;
+	padding: 10px 0;
+	color: blue;
+}
+
+
+

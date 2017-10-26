@@ -1,0 +1,27 @@
+package com.topview;
+
+import java.io.File;
+
+import org.junit.Test;
+
+import com.topview.school.util.ThumbnailUtil;
+
+
+public class ThumbPicTest {
+	
+	
+	
+	@Test
+	public void test(){
+		File f = new File("d:\\1.jpg");
+		ThumbnailUtil.squareThumbnailGenerate(f, 200);
+		
+	}
+	
+	@Test
+	public void test2(){
+		File f = new File("d:\\2.jpg");
+		ThumbnailUtil.thumbnailImage("d:\\003.jpg",0.2);
+	}
+
+}

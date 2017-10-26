@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>关于 IOS9 安装说明</title>
+	<link rel="stylesheet" href="ios.css">
+</head>
+<body>
+	<img src="images/123_01.png" alt="">
+	<img src="images/123_02.png" alt="">
+	<img src="images/123_03.png" alt="">
+	<img src="images/123_04.png" alt="">
+	<img src="images/123_05.png" alt="">
+	<img src="images/123_06.png" alt="">
+	<button id="download">我 知 道 了</button>
+	<p id = "notice">**点击安装后请返回桌面等待查看**</p>
+	<script src="ios.js"></script>
+</body>
+</html>

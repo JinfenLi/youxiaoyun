@@ -1,0 +1,40 @@
+.container {
+	width: 80%;
+}
+.container > .row {
+	margin: 2px;
+}
+.col-xs-6 {
+	line-height: 55px;
+	text-align: center;
+	/*background: #ccc;*/
+
+}
+
+.comment {
+	text-align: center;
+	font-size: 18px;
+	color: red;
+}
+
+.header .col-xs-6 {
+	background: #abcdef;
+	height: 25px;
+	line-height: 25px;
+}
+
+.section {
+	background: rgb(217, 194, 219);
+}
+
+.week1, .week4, .week7 {
+	background: rgb(185, 220, 196);
+}
+
+.week2, .week5 {
+	background: rgb(254, 252, 197);
+}
+
+.week3, .week6 {
+	background: rgb(252, 232, 153);
+}

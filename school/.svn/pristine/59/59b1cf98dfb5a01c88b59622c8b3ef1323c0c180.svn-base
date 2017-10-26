@@ -1,0 +1,59 @@
+package com.topview.school.util;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.springframework.web.multipart.MultipartFile;
+
+import com.topview.multimedia.vo.PostVo;
+import com.topview.school.vo.FileUploadVo;
+
+public class PostPicturePathUtil {
+
+	public static PostVo savePicturePath(PostVo vo,MultipartFile[] files,HttpServletRequest request,String[] fileNames,String schoolId) {
+		
+		//当上传的图片只有一张时，将该图片按照原图的比例压缩
+				if (files != null && files.length == 1){
+					List<String> urls = new ArrayList<String>();
+					MultipartFile file = files[0];
+					FileUploadVo fileUploadVo = FileUploadUtil.uploadFile(file,
+							schoolId + "/post/", request, false);
+					ThumbnailUtil.thumbnailImage(fileUploadVo.getRealPath()+"/"+file.getOriginalFilename(), 0.3);
+					if (fileUploadVo != null) {
+						if(FileUploadUtil.setThumbnailPath(schoolId + "/post", fileUploadVo.getFileName()).equals("error")){
+							urls.add(fileUploadVo.getRelativePath());
+						}
+						urls.add(FileUploadUtil.setThumbnailPath(schoolId + "/post", fileUploadVo.getFileName()));
+					}
+					vo.setUrls(urls);
+				}
+				//上传多张图片时，采用压缩成方形的缩略图
+				else if (files != null && files.length > 0) {
+						List<String> urls = new ArrayList<String>();
+						MultipartFile[] temp = FileUploadUtil.orderFiles(files, Arrays.asList(fileNames));
+						for (int i = 0; i < temp.length; i++) {
+							MultipartFile file = temp[i];
+							FileUploadVo fileUploadVo = FileUploadUtil.uploadFile(file,
+									schoolId + "/post/", request, false);
+							//将传入的图片生成 缩略图并放置在post/thumb文件
+							//重新读出文件(写在这里简直。。。)
+							File imageFile = new File(fileUploadVo.getRealPath()+"/"+file.getOriginalFilename());
+							ThumbnailUtil.squareThumbnailGenerate(imageFile, 200);
+							if (fileUploadVo != null) {
+								if(FileUploadUtil.setThumbnailPath(schoolId + "/post", fileUploadVo.getFileName()).equals("error")){
+									urls.add(fileUploadVo.getRelativePath());
+								}
+								urls.add(FileUploadUtil.setThumbnailPath(schoolId + "/post", fileUploadVo.getFileName()));
+							}
+						}
+					vo.setUrls(urls);
+				}
+		return vo;
+	}
+	
+	
+}

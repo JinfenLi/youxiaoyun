@@ -1,0 +1,137 @@
+//定义数据模型类
+Ext.define("MsgModel", {
+	extend: "Ext.data.Model",
+	fields: [
+		"id", "content", "reciever", "time"
+	]
+});
+
+//定义一个数据缓存Stroe类
+Ext.define("MsgStore", {
+	extend: "Ext.data.Store",
+	model: "MsgModel",
+	autoLoad: true,
+	proxy: {
+	    type: 'ajax',
+	    url: 'msglist.json',
+	    reader: {
+	        type: 'json',
+	        root: 'data'
+	    }
+	}
+});
+
+//定义视图类
+Ext.define("MsgView", {
+	extend: "Ext.grid.Panel",
+	forceFit: true,		//强制充满表格
+	initComponent: function() {
+		this.store = Ext.create("MsgStore");
+		this.columns = [
+			{
+				text: "消息id",
+				hidden: true,
+				dataIndex: "id"
+			},
+			{
+				text: "消息内容",
+				flex: 10,
+				dataIndex: "content"
+			},
+			{
+				text: "接受人",
+				flex: 10,
+				dataIndex: "reciever"
+			},
+			{
+				text: "发送日期",
+				flex: 2,
+				dataIndex: "time"
+			},
+			//删除按钮
+			{
+				xtype: "actioncolumn",
+				flex: 1,
+				header: "删除",
+				itemId: "delete",
+				align: "center",
+				items: [
+					{
+						iconCls: "delete",
+						handler: function(grid, rowIndex, colIndex) {
+							alert("ok");
+						}
+					}
+				]
+			}
+		];
+
+		//使用RowExpander
+		this.plugins = [
+			{
+	            ptype: 'rowexpander',
+	            rowBodyTpl : new Ext.XTemplate(
+	            	'<p style="font-weight:800">信息详情</p>',
+					'<p>{content}</p>',
+					'<p style="font-weight:800">收件人</p>',
+					'<p>{reciever}</p>'
+	           )
+	        }
+        ];
+
+		//固定菜单栏
+		this.dockedItems = [
+			{
+				xtype: "toolbar",
+				dock: "top",
+				defaults: {
+					labelWidth: 20
+				},
+				items: [
+					{
+						xtype: "label",
+						text: "时间范围:",
+						margin: "0 10"
+					},
+					{
+						xtype: "datefield",
+						format: "Y-m-d",
+						emptyText: "日期格式：xxxx-xx-xx",
+						fieldLabel: "从",
+						itemId: "beginTime"
+					},
+					{
+						xtype: "datefield",
+						format: "Y-m-d",
+						emptyText: "日期格式：xxxx-xx-xx",
+						fieldLabel: "到",
+						itemId: "endTime"
+					},
+					{
+						xtype: "button",
+						iconCls: "key_go",
+						text: "查询",
+						itemId: "query"
+					}
+				]
+			},
+
+			//分页工具
+			{  
+		        xtype: 'pagingtoolbar',
+		        itemId: "paging",  
+		        store: this.store,   // same store GridPanel is using  
+		        dock: 'bottom',  
+		        displayInfo: true  
+		    }  
+		];
+		this.callParent(arguments);
+	}
+
+});
+
+
+//实例化视图类
+Ext.create("MsgView", {
+	renderTo: Ext.getBody();
+})

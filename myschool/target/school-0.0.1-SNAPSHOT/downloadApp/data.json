@@ -1,0 +1,10 @@
+{
+	"success": true,
+	"version": [{
+		"schoolName": "广州市天河区华景小学",
+		"url": "/schoolUpload/version_update/android/YouXiaoYun_Socket_New.apk"
+	}, {
+		"schoolName": "广州市天河区杰斌小学",
+		"url": "/schoolUpload/version_update/android/YouXiaoYun_Socket_Newa.apk"
+	}]
+}

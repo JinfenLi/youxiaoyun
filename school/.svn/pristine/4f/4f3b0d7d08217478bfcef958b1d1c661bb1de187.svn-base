@@ -1,0 +1,24 @@
+package com.topview.school.vo.exam;
+
+import java.util.List;
+
+public class ExamDiagram {
+	private String category;
+	private List<Float> value;
+	public String getCategory() {
+		return category;
+	}
+	
+	public void setCategory(String category) {
+		this.category = category;
+	}
+	
+	public List<Float> getValue() {
+		return value;
+	}
+	
+	public void setValue(List<Float> value) {
+		this.value = value;
+	}
+	
+}

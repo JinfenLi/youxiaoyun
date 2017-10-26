@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+           http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.1.xsd">
+
+	<!-- Define any javax.servlet.Filter beans you want anywhere in this application 
+		context. -->
+	<!-- They will automatically be acquired by the 'shiroFilter' bean above 
+		and made available -->
+	<!-- to the 'filterChainDefinitions' property. Or you can manually/explicitly 
+		add them -->
+	<!-- to the shiroFilter's 'filters' Map if desired. See its JavaDoc for 
+		more details. -->
+	<!-- <bean id="someFilter" class="..." /> <bean id="anotherFilter" class="..."></bean> -->
+
+
+	<bean id="securityManager" class="org.apache.shiro.web.mgt.DefaultWebSecurityManager">
+		<!-- Single realm app. If you have multiple realms, use the 'realms' property 
+			instead. -->
+		<property name="realm" ref="sampleRealm" />
+		<!-- By default the servlet container sessions will be used. Uncomment 
+			this line to use shiro's native sessions (see the JavaDoc for more): -->
+	</bean>
+
+	<bean id="lifecycleBeanPostProcessor" class="org.apache.shiro.spring.LifecycleBeanPostProcessor" />
+
+	<!-- Define the Shiro Realm implementation you want to use to connect to 
+		your back-end -->
+	<!-- security datasource: -->
+	<bean id="sampleRealm" class="org.apache.shiro.realm.jdbc.JdbcRealm">
+		<property name="dataSource" ref="dataSource" />
+
+		<property name="authenticationQuery"
+			value="select password from t_sc_teacher where phone = ?" />
+
+		<property name="userRolesQuery"
+			value="select r.role from role r, user_role ur,t_sc_teacher u where u.phone = ? and ur.role_id = r.id and ur.user_id = u.id" />
+
+		<!-- <property name="permissionsQuery"
+			value="select p.permission from role r,role_permission rp, permission p where r.role = ? and rp.role_id = r.id and rp.permission_id = p.id" />
+		<property name="permissionsLookupEnabled" value="true" /> -->
+		<property name="saltStyle" value="NO_SALT" />
+		<property name="credentialsMatcher" ref="simpleCredentialsMatcher"></property>
+	</bean>
+
+	<bean id="simpleCredentialsMatcher"
+		class="org.apache.shiro.authc.credential.SimpleCredentialsMatcher"></bean>
+
+
+	<!-- <context:property-placeholder location="classpath*:config-school.properties" 
+		ignore-unresolvable="true" /> <bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource" 
+		destroy-method="close"> <property name="driverClass" value="${jdbc.driver}" 
+		/> <property name="jdbcUrl" value="${jdbc.url}" /> <property name="user" 
+		value="${jdbc.username}" /> <property name="password" value="${jdbc.password}" 
+		/> <property name="acquireIncrement" value="${c3p0.acquireIncrement}" /> 
+		<property name="initialPoolSize" value="${c3p0.initialPoolSize}" /> <property 
+		name="maxIdleTime" value="${c3p0.maxIdleTime}" /> <property name="maxPoolSize" 
+		value="${c3p0.maxPoolSize}" /> <property name="minPoolSize" value="${c3p0.minPoolSize}" 
+		/> </bean> -->
+
+	<bean id="shiroFilter" class="org.apache.shiro.spring.web.ShiroFilterFactoryBean">
+
+		<!-- override these for application-specific URLs if you like: <property 
+			name="loginUrl" value="/login.jsp"/> <property name="successUrl" value="/home.jsp"/> 
+			<property name="unauthorizedUrl" value="/unauthorized.jsp"/> -->
+		<!-- The 'filters' property is not necessary since any declared javax.servlet.Filter 
+			bean -->
+		<!-- defined will be automatically acquired and available via its beanName 
+			in chain -->
+		<!-- definitions, but you can perform instance overrides or name aliases 
+			here if you like: -->
+		<!-- <property name="filters"> <util:map> <entry key="anAlias" value-ref="someFilter"/> 
+			</util:map> </property> -->
+
+		<property name="securityManager" ref="securityManager" />
+		<property name="filterChainDefinitions">
+			<value>
+				<!-- # some example chain definitions: /admin/** = authc, roles[admin] 
+					/docs/** = authc, perms[document:read] /** = authc # more URL-to-FilterChain 
+					definitions here -->
+			<!-- 课程管理  -->
+				/curricula/createCurricula* = authc
+				/curricula/getCurriculaBySubjectId* = authc
+				/curricula/delectCurricula* = authc
+				/curricula/updateCurricula* = authc
+				/curricula/downloadCurricula* = authc
+				/curricula/uploadCurriculaExcel* = authc
+				/curricula/chooseCurricula* = authc
+				/curricula/saveCurriculaVariable* = authc
+				/curricula/showCurriculaVariable* = authc
+				
+				<!-- 分数管理 -->
+				/score/uploadScore* = authc
+				/score/downClazzScore* = authc
+
+				<!-- 考试管理  -->
+				/exam/createExam* = authc
+				/exam/deleteExam* = authc
+				/exam/updateExam* = authc
+				/exam/selectExamRecord* = authc
+				
+				<!-- 照片管理  -->
+				/photo/getNotPassPhoto* = authc
+				/photo/deletephoto* = authc
+				
+				<!-- 相册管理  -->
+				/album/createAlbum* = authc
+				/album/deleteAlbum* = authc
+				/album/getAlbumNoPager* = authc
+				/album/getAlbumWithPager* = authc
+
+				<!-- 视频管理 -->
+				/library/createLibrary* =  authc
+				/video/updateVideo* = authc
+				/video/getVideo* = authc
+				/video/getNotPassVideo* = authc
+				/video/uploadVideo* = authc
+				
+
+				<!-- 文章管理 -->
+				/article/sendArticle* = authc
+				
+				<!-- 班级管理 -->
+				/clazz/** = authc
+				<!-- /clazz/createClazz = authc,perms[clazz:createClazz]
+				/clazz/deleteClazz = authc,perms[clazz:deleteClazz]
+				/clazz/getClazzByGradeId = authc,perms[clazz:getClazzByGradeId]
+				/clazz/updateClazz = authc,perms[clazz:updateClazz] -->
+				
+				
+				<!-- 部门管理 -->
+				/department/** = authc
+				<!-- /department/createDepartment = authc,perms[department:createDepartment]
+				/department/deleteDepartment = authc,perms[department:deleteDepartment]
+				/department/updateDepartment = authc,perms[department:updateDepartment]
+				/department/selectDepartments = authc,perms[department:selectDepartments]
+				/department/assignTeacherToDepartment = authc,perms[department:assignTeacherToDepartment]-->
+				
+				<!-- 年级管理 -->
+				/grade/createGrade.action = authc
+				/grade/deleteGrade.action = authc
+				/grade/updateGrade.action = authc
+				
+				<!-- 年级资源管理  -->
+				/grade_resources/uploadResource* = authc
+				
+				
+				<!-- 老师职位  -->
+				/teacher_position/** = authc
+				
+				<!-- 学科管理 -->
+				/subject/** = authc
+				
+				<!-- 学校管理 -->
+				/sch/schoolSave* = authc
+				/sch/delectSchool* = authc
+				/sch/updateSchool* = authc
+				/sch/updatePassword* = authc
+				
+				<!-- 学生家长信息管理 -->
+				/student/** = authc
+				
+				<!-- 教师管理 -->
+				/teacher/** = authc
+				
+				<!-- 权限相关 -->
+				/role/** = authc
+
+				/module/** = authc
+				
+				<!-- /module/user_module_list.action = authc
+				/permission/user_module_permission_list.action = authc
+				 -->
+				
+				/permissoin/** = authc
+				
+			</value>
+		</property>
+
+		<property name="loginUrl" value="/index.html" />
+	</bean>
+
+
+
+
+
+
+
+
+</beans>

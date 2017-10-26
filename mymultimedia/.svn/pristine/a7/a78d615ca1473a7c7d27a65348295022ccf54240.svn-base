@@ -1,0 +1,17 @@
+package com.topview.multimedia.dao;
+
+import com.topview.multimedia.dao.base.BaseDao;
+import com.topview.multimedia.po.MultimediaFile;
+
+public interface MultimediaFileMapper extends BaseDao<MultimediaFile>{
+	
+public boolean deleteByTmid(String tMId);
+	
+	/**
+	 * 根据文件夹id查询文件夹中的文件总数
+	 * @param folderId
+	 * @return
+	 */
+	public int selectCount(String folderId);
+    
+}

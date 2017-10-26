@@ -1,0 +1,389 @@
+package com.topview.multimedia.service.evaluation;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+
+import com.topview.multimedia.dao.EvaluationMapper;
+import com.topview.multimedia.dao.EvaluationTemplateMapper;
+import com.topview.multimedia.dao.GroupMapper;
+import com.topview.multimedia.po.Evaluation;
+import com.topview.multimedia.vo.EvaluationInfo;
+import com.topview.multimedia.vo.EvaluationTemplateInfo;
+import com.topview.multimedia.vo.GroupInfo;
+import com.topview.multimedia.vo.result.EvaluationInfoResult;
+import com.topview.multimedia.vo.result.EvaluationTemplateInfoResult;
+import com.topview.multimedia.vo.result.GroupInfoResult;
+
+
+/** * @author  Rachel 
+@date 创建时间：2016年9月20日 下午8:38:47 * 
+@version 1.0 * 
+@parameter  *
+ @since  * 
+@return  */
+public class EvaluationServiceImpl implements EvaluationService {
+	
+	List<EvaluationProcess> evaluationSaveProcesses;
+	List<EvaluationProcess> evaluationTemplateSaveProcesses;
+	List<EvaluationProcess> templateJudgeOwnerProcesses;
+	List<EvaluationProcess> templateUpdateProcesses;
+	List<EvaluationProcess> templateAvailableProcesses;
+	List<EvaluationProcess> groupSaveProcesses;
+	List<EvaluationProcess> groupFindAllProcesses;
+	List<EvaluationProcess> evaluationFindByStudentProcesses;
+	List<EvaluationProcess> studentFindByGroupIdProcesses;
+	List<EvaluationProcess> templateDeleteByTeacherProcesses;
+	List<EvaluationProcess> templateRemoveProcesses;
+	List<EvaluationProcess> templateFindByIdProcesses;
+	List<EvaluationProcess> templateFindByUnpassProcesses;
+	List<EvaluationProcess> templateFindByTypeProcesses;
+	List<EvaluationProcess> templateCountByUserProcesses;
+	List<EvaluationProcess> groupDeleteProcesses;
+	List<EvaluationProcess> groupUpdateProcesses;
+	List<EvaluationProcess> evaluationDeleteProcesses;
+	@Resource
+	private EvaluationMapper em;
+	@Resource
+	private EvaluationTemplateMapper etm;
+	@Resource
+	private GroupMapper gm;
+
+	@Override
+	public EvaluationInfoResult evaluationSave(EvaluationInfo info) {
+		return doProcess(info,evaluationSaveProcesses);
+	}
+	@Override
+	public EvaluationInfoResult evaluationDelete(EvaluationInfo info) {
+		return doProcess(info,evaluationDeleteProcesses);
+	}
+	
+	@Override
+	public EvaluationTemplateInfoResult evaluationTemplateSave(
+			EvaluationTemplateInfo info) {
+		return doTemplateProcess(info,evaluationTemplateSaveProcesses);
+	}
+	
+	@Override
+	public EvaluationTemplateInfoResult templateJudgeOwner(
+			EvaluationTemplateInfo info) {
+		return doTemplateProcess(info,templateJudgeOwnerProcesses);
+	}
+	
+	@Override
+	public EvaluationTemplateInfoResult templateUpdate(
+			EvaluationTemplateInfo info) {
+		return doTemplateProcess(info,templateUpdateProcesses);
+	}
+	@Override
+	public EvaluationTemplateInfoResult templateAvailable(
+			EvaluationTemplateInfo info) {
+		return doTemplateProcess(info,templateAvailableProcesses);
+	}
+	
+	@Override
+	public EvaluationTemplateInfoResult templateCountByUser(
+			EvaluationTemplateInfo info) {
+		return doTemplateProcess(info,templateCountByUserProcesses);
+	}
+	
+
+	@Override
+	public GroupInfoResult groupSave(GroupInfo info) {
+		return doGroupProcess(info,groupSaveProcesses);
+	}
+	
+	@Override
+	public GroupInfoResult groupFindAll(GroupInfo info) {
+		return doGroupProcess(info,groupFindAllProcesses);
+	}
+	@Override
+	public GroupInfoResult groupUpdate(GroupInfo info) {
+		return doGroupProcess(info,groupUpdateProcesses);
+	}
+	@Override
+	public EvaluationInfoResult evaluationFindByStudent(EvaluationInfo info) {
+		return doProcess(info,evaluationFindByStudentProcesses);
+	}
+	
+	@Override
+	public GroupInfoResult studentFindByGroupId(GroupInfo info) {
+		return doGroupProcess(info,studentFindByGroupIdProcesses);
+	}
+	@Override
+	public EvaluationTemplateInfoResult templateDeleteByTeacher(
+			EvaluationTemplateInfo info) {
+		return doTemplateProcess(info,templateDeleteByTeacherProcesses);
+	}
+	@Override
+	public EvaluationTemplateInfoResult templateRemove(
+			EvaluationTemplateInfo info) {
+		return doTemplateProcess(info,templateRemoveProcesses);
+	}
+	@Override
+	public EvaluationTemplateInfoResult templateFindById(
+			EvaluationTemplateInfo info) {
+		return doTemplateProcess(info,templateFindByIdProcesses);
+	}
+	
+	@Override
+	public EvaluationTemplateInfoResult templateFindByUnpass(
+			EvaluationTemplateInfo info) {
+		return doTemplateProcess(info,templateFindByUnpassProcesses);
+	}
+	@Override
+	public EvaluationTemplateInfoResult templateFindByType(
+			EvaluationTemplateInfo info) {
+		return doTemplateProcess(info,templateFindByTypeProcesses);
+	}
+	@Override
+	public GroupInfoResult groupDelete(GroupInfo info) {
+		return doGroupProcess(info,groupDeleteProcesses);
+	}
+
+	public List<EvaluationProcess> getEvaluationSaveProcesses() {
+		return evaluationSaveProcesses;
+	}
+
+	public void setEvaluationSaveProcesses(
+			List<EvaluationProcess> evaluationSaveProcesses) {
+		this.evaluationSaveProcesses = evaluationSaveProcesses;
+	}
+
+	public List<EvaluationProcess> getEvaluationTemplateSaveProcesses() {
+		return evaluationTemplateSaveProcesses;
+	}
+	
+
+	public List<EvaluationProcess> getTemplateAvailableProcesses() {
+		return templateAvailableProcesses;
+	}
+	public void setTemplateAvailableProcesses(
+			List<EvaluationProcess> templateAvailableProcesses) {
+		this.templateAvailableProcesses = templateAvailableProcesses;
+	}
+	public List<EvaluationProcess> getTemplateUpdateProcesses() {
+		return templateUpdateProcesses;
+	}
+
+	public List<EvaluationProcess> getTemplateRemoveProcesses() {
+		return templateRemoveProcesses;
+	}
+	public void setTemplateRemoveProcesses(
+			List<EvaluationProcess> templateRemoveProcesses) {
+		this.templateRemoveProcesses = templateRemoveProcesses;
+	}
+	public void setTemplateUpdateProcesses(
+			List<EvaluationProcess> templateUpdateProcesses) {
+		this.templateUpdateProcesses = templateUpdateProcesses;
+	}
+
+	public void setEvaluationTemplateSaveProcesses(
+			List<EvaluationProcess> evaluationTemplateSaveProcesses) {
+		this.evaluationTemplateSaveProcesses = evaluationTemplateSaveProcesses;
+	}
+	
+	public List<EvaluationProcess> getTemplateJudgeOwnerProcesses() {
+		return templateJudgeOwnerProcesses;
+	}
+
+	public List<EvaluationProcess> getTemplateFindByTypeProcesses() {
+		return templateFindByTypeProcesses;
+	}
+	public void setTemplateFindByTypeProcesses(
+			List<EvaluationProcess> templateFindByTypeProcesses) {
+		this.templateFindByTypeProcesses = templateFindByTypeProcesses;
+	}
+	public void setTemplateJudgeOwnerProcesses(
+			List<EvaluationProcess> templateJudgeOwnerProcesses) {
+		this.templateJudgeOwnerProcesses = templateJudgeOwnerProcesses;
+	}
+	
+
+	public List<EvaluationProcess> getGroupSaveProcesses() {
+		return groupSaveProcesses;
+	}
+
+	public void setGroupSaveProcesses(List<EvaluationProcess> groupSaveProcesses) {
+		this.groupSaveProcesses = groupSaveProcesses;
+	}
+	
+
+	public List<EvaluationProcess> getGroupFindAllProcesses() {
+		return groupFindAllProcesses;
+	}
+
+	public void setGroupFindAllProcesses(
+			List<EvaluationProcess> groupFindAllProcesses) {
+		this.groupFindAllProcesses = groupFindAllProcesses;
+	}
+	
+
+	public List<EvaluationProcess> getEvaluationFindByStudentProcesses() {
+		return evaluationFindByStudentProcesses;
+	}
+
+	public void setEvaluationFindByStudentProcesses(
+			List<EvaluationProcess> evaluationFindByStudentProcesses) {
+		this.evaluationFindByStudentProcesses = evaluationFindByStudentProcesses;
+	}
+	
+	
+
+	public List<EvaluationProcess> getStudentFindByGroupIdProcesses() {
+		return studentFindByGroupIdProcesses;
+	}
+
+	public void setStudentFindByGroupIdProcesses(
+			List<EvaluationProcess> studentFindByGroupIdProcesses) {
+		this.studentFindByGroupIdProcesses = studentFindByGroupIdProcesses;
+	}
+	
+
+	public List<EvaluationProcess> getTemplateDeleteByTeacherProcesses() {
+		return templateDeleteByTeacherProcesses;
+	}
+
+	public void setTemplateDeleteByTeacherProcesses(
+			List<EvaluationProcess> templateDeleteByTeacherProcesses) {
+		this.templateDeleteByTeacherProcesses = templateDeleteByTeacherProcesses;
+	}
+	
+
+	public List<EvaluationProcess> getTemplateFindByIdProcesses() {
+		return templateFindByIdProcesses;
+	}
+
+	public void setTemplateFindByIdProcesses(
+			List<EvaluationProcess> templateFindByIdProcesses) {
+		this.templateFindByIdProcesses = templateFindByIdProcesses;
+	}
+	
+	public List<EvaluationProcess> getGroupDeleteProcesses() {
+		return groupDeleteProcesses;
+	}
+
+	public void setGroupDeleteProcesses(List<EvaluationProcess> groupDeleteProcesses) {
+		this.groupDeleteProcesses = groupDeleteProcesses;
+	}
+
+	public List<EvaluationProcess> getEvaluationDeleteProcesses() {
+		return evaluationDeleteProcesses;
+	}
+	public void setEvaluationDeleteProcesses(
+			List<EvaluationProcess> evaluationDeleteProcesses) {
+		this.evaluationDeleteProcesses = evaluationDeleteProcesses;
+	}
+	
+	
+	public List<EvaluationProcess> getGroupUpdateProcesses() {
+		return groupUpdateProcesses;
+	}
+	public void setGroupUpdateProcesses(List<EvaluationProcess> groupUpdateProcesses) {
+		this.groupUpdateProcesses = groupUpdateProcesses;
+	}
+	
+	
+	
+	public List<EvaluationProcess> getTemplateFindByUnpassProcesses() {
+		return templateFindByUnpassProcesses;
+	}
+	
+	public void setTemplateFindByUnpassProcesses(
+			List<EvaluationProcess> templateFindByUnpassProcesses) {
+		this.templateFindByUnpassProcesses = templateFindByUnpassProcesses;
+	}
+	public List<EvaluationProcess> getTemplateCountByUserProcesses() {
+		return templateCountByUserProcesses;
+	}
+	public void setTemplateCountByUserProcesses(
+			List<EvaluationProcess> templateCountByUserProcesses) {
+		this.templateCountByUserProcesses = templateCountByUserProcesses;
+	}
+	public EvaluationInfoResult doProcess(EvaluationInfo evaluation,
+			List<EvaluationProcess> processes) {
+		EvaluationProcessContext context = new EvaluationProcessContext();
+		EvaluationInfoResult result = new EvaluationInfoResult();
+		context.setResult(result);
+		context.setInfo(evaluation);
+		for (EvaluationProcess process : processes) {
+			if (!process.doProcess(context)) {
+				break;
+			}
+		}
+		return context.getResult();
+	}
+
+	public EvaluationTemplateInfoResult doTemplateProcess(EvaluationTemplateInfo et,
+			List<EvaluationProcess> processes) {
+		EvaluationProcessContext context = new EvaluationProcessContext();
+		EvaluationTemplateInfoResult result = new EvaluationTemplateInfoResult();
+		context.setEtir(result);
+		context.setEti(et);
+		for (EvaluationProcess process : processes) {
+			if (!process.doProcess(context)) {
+				break;
+			}
+		}
+		return context.getEtir();
+	}
+
+	
+	public GroupInfoResult doGroupProcess(GroupInfo gi,
+			List<EvaluationProcess> processes) {
+		EvaluationProcessContext context = new EvaluationProcessContext();
+		GroupInfoResult result = new GroupInfoResult();
+		context.setGir(result);
+		context.setGi(gi);
+		for (EvaluationProcess process : processes) {
+			if (!process.doProcess(context)) {
+				break;
+			}
+		}
+		return context.getGir();
+	}
+
+	@Override
+	public int selectCount(String uploaderId) {
+		return etm.selectCount(uploaderId);
+	}
+	@Override
+	public Integer stuTotalScore(Map<String,Object> map){
+		return em.getStudentScore(map);
+	}
+	@Override
+	public List<Map<String,Object>> evaluationSorted(Map<String,Object> map) {
+		List<Map<String,Object>> list = em.getSortedEvaluation(map);
+		List<Map<String,Object>> delList = new ArrayList<Map<String,Object>>();
+		for(Map<String,Object> m : list){
+			if(m.get("template_id")!=null&&!"".equals(m.get("template_id"))){
+				m.put("name", etm.selectByPrimaryKey(m.get("template_id").toString()).getName());
+			}else{
+				delList.add(m);
+			}
+		}
+		list.removeAll(delList);
+		return list;
+	}
+	@Override
+	public boolean isGroupEvaluation(EvaluationInfo info){
+		Evaluation e = em.selectByPrimaryKey(info.getId());
+		if(e.getGroupId()!=null&&!"".equals(e.getGroupId())){
+			return true;
+		}else{
+			return false;
+		}
+	}
+	@Override
+	public boolean isOwnEvaluation(EvaluationInfo info) {
+		Evaluation e = em.selectByPrimaryKey(info.getId());
+		if(e.getTeacherId().equals(info.getTeacherId())){
+			return true;
+		}else{
+			return false;
+		}
+	}
+
+}

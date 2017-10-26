@@ -1,0 +1,16 @@
+/*
+*author：小玉
+*description:文件共享
+**/
+Ext.define('School.model.clazz.FileShare',{
+	extend:'Ext.data.Model',
+	fields:[
+	  'id',
+      'name',
+      'uploader',
+      'uploadTime',
+      'size',
+      'type',
+      'filePath'
+	]
+})

@@ -1,0 +1,54 @@
+package com.topview.school.dao.user;
+
+import java.util.List;
+import java.util.Map;
+
+import com.topview.school.dao.base.BaseDao;
+import com.topview.school.po.Parent;
+import com.topview.school.vo.contacts.ContactsInfo;
+import com.topview.school.vo.contacts.ParentContact;
+
+public interface ParentMapper extends BaseDao<Parent>{
+
+	public Parent findByNameAndPassword(Map<String, Object> param);
+
+	public List<Parent> selectByStudentId(String id);
+	
+	/**
+	 * 根据班级id获取家长通讯录
+	 * @param id
+	 * @return
+	 */
+	@Deprecated
+	public List<ContactsInfo> selectContactsByClassId(String id);//根据班级id查看本班家长通讯录
+	
+	/**
+	 * 根据家长姓名和家长手机号码查询家长
+	 * @param name
+	 * @param phone
+	 * @return
+	 */
+	public Parent findByNameAndPhone(String name, String phone);
+	
+	/**
+	 * 根据班级id查询家长通讯录
+	 * @param clazzId
+	 * @return
+	 */
+	public List<ParentContact> getParentContacts(String clazzId);
+	
+	/**
+	 * 根据手机号查询
+	 * @param moble
+	 * @return
+	 */
+	public Parent findByMoble(String moble);
+	
+	/**
+	 * 根据学生id查询主家长
+	 * @param studentId
+	 * @return
+	 */
+	public Parent  selectMainParent(String studentId);
+	
+}

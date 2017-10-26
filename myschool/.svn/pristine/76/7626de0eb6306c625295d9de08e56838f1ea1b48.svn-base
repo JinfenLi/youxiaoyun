@@ -1,0 +1,37 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+
+<title>player</title>
+<link rel="shortcut icon" href="/favicon.ico" >
+</head>
+
+<body>
+
+<script type="text/javascript" src="images/swfobject.js"></script>
+<div class="video" id="CuPlayer">
+<script type="text/javascript">
+
+   function startPlayer(url) {
+        var so = new SWFObject("CuPlayerMiniV4.swf","CuPlayerV4",
+            "590","410","9","#000000");
+        so.addParam("allowfullscreen","true");
+        so.addParam("allowscriptaccess","always");
+        so.addParam("wmode","opaque");
+        so.addParam("quality","high");
+        so.addParam("salign","lt");
+        so.addVariable("CuPlayerSetFile","CuPlayerSetFile.xml"); 
+        so.addVariable("CuPlayerFile", url); 
+        so.addVariable("CuPlayerImage","images/start.jpg");
+        so.addVariable("CuPlayerWidth","600"); 
+        so.addVariable("CuPlayerHeight","410"); 
+        so.addVariable("CuPlayerAutoPlay","yes"); 
+        so.addVariable("CuPlayerLogo","images/logo.png"); 
+        so.addVariable("CuPlayerPosition","bottom-right"); 
+        so.write("CuPlayer");
+   }
+</script>
+
+</body>
+</html>
+

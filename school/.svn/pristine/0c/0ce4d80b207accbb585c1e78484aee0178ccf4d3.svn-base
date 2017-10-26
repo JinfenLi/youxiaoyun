@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<title>学生成绩</title>
+		<link rel="stylesheet" href="index.css">
+	</head>
+	<body>
+		<div id="annular" class="common"></div>
+		<div id="analyse" class="common"></div>
+		<div id="base" class="common"></div>
+		<div id="column" class="common"></div>
+
+		<script src='echarts.common.min.js'></script>
+		<script src='ajax.js'></script>
+		<script src='index.js'></script>
+		<!-- <script src='test.js'></script> -->
+	</body>
+</html>

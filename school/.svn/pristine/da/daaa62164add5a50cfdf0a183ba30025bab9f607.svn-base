@@ -1,0 +1,398 @@
+window.onload = function() {
+
+  var myAnnular = echarts.init(document.getElementById('annular')),
+      myAnalyse = echarts.init(document.getElementById('analyse')),
+      myDistribution = echarts.init(document.getElementById('base')),
+      myColumn = echarts.init(document.getElementById('column'));
+  
+  var hostAddress = 'http://localhost:8080/school';
+
+  //获取 URL 中的参数
+  var params = {}, reg = /([^\=\?\&]+)\=([^&]+)/;
+  var url = window.location.search;
+  while(reg.test(url)){
+    url = url.replace(reg, function(input, $1, $2){
+      params[$1] = $2;
+      return ""
+    });
+  }
+  
+  function getMin(arr) {
+	    return Math.min.apply(Math,arr);    
+	  }
+
+  /*
+  Ajax方法解释
+  第2个参数就是请求的 Action
+  第3个参数就是传给后台的参数，那些字段名我都是根据你文档的写的，如果报错的话，注意字段名一不一样！！！
+  */
+
+  //图一， 
+  Ajax('get', hostAddress+'/score/getFanDiagramByExamId.action', {examId: params.examId, studentId: params.studentId}, function(data){
+    var rank = data.score.rank ? '排名: 第 ' + data.score.rank + ' 名' + '\n' + '\n' : '',
+        top = data.score.highest ? '最高分: ' + data.score.highest + '\n' + '\n' : '',
+        low = data.score.lowest ? '最低分: ' + data.score.lowest + '\n' + '\n' : '',
+        average = data.score.average ? '平均分: ' + data.score.average : '',
+        scoreText = rank + top + low + average;
+    var annularOption = {
+      title : {
+        text: data.text,
+        subtext: scoreText,
+        subtextStyle: {
+          color: 'black',
+          fontSize: 26
+        },         
+        itemGap: 30,
+        left: '6%',
+        top: '8%',
+        textStyle: {
+          fontSize: 40,  
+        }
+      },
+      legend: {
+        orient: 'vertical',
+        right: '8%',
+        y: 'bottom',
+        textStyle: {
+          fontSize: 32
+        },
+        data: ['分数'],
+      },
+      series : [
+        {
+          name: '成绩',
+          type: 'pie',
+          radius: ['50%', '70%'],
+          center: ['50%', '55%'],
+          data:[
+            {
+              value: data.score.value, 
+              name: '分数',
+              itemStyle: {
+                normal: {
+                  color: 'rgb(234, 115, 33)' 
+                }
+              },
+              label: {
+                normal: {
+                  show: true,
+                  textStyle: {
+                    fontSize: 32,
+                  },
+                } 
+              }     
+                },
+            {
+              value: data.score.value < 100 ? 100-data.score.value : 0, 
+              name: data.score.value + ' 分',
+              itemStyle: {
+                normal: {
+                  color: 'rgb(234, 183, 54)' 
+                }
+              },
+              label: {
+                normal: {
+                  show: true,
+                  textStyle: {
+                    fontSize: 64,
+                    color: 'red',
+                  },
+                  position: 'center'
+                } 
+              } 
+            }
+          ],
+          itemStyle: {
+            emphasis: {
+              shadowBlur: 10,
+              shadowOffsetX: 0,
+              shadowColor: 'rgba(0, 0, 0, 0.5)'
+            }
+          }
+        }
+      ],
+    };
+    myAnnular.setOption(annularOption);
+
+  }, function(error){
+      console.log(error);
+  });
+
+  //图二
+  Ajax('get', hostAddress+'/score/getScoreTrender.action', {examId: params.examId, clazzId: params.clazzId, termId:params.termId, studentId: params.studentId}, function(data){
+    var xData = [], serie = [], color = ['blue', 'green', 'red'], minNum = 100;
+
+    for(var i=0, len=data.name.length; i < len; i++){
+      xData.push({            
+        value: data.name[i],
+        textStyle: {
+          fontSize: 26
+          }
+      })
+    }
+    
+    for(var i=0, len = data.score.length; i < len; i++) {
+        serie.push({
+          name:data.score[i].category,
+          type:'line',
+          data:data.score[i].value,
+          label: {
+            normal: {
+              show: true,
+              position: ['-20', '-30'],
+              textStyle: {
+                fontSize: 22  
+              }
+           }
+          },
+          lineStyle: {normal:{
+            width: 4,
+            color: color[i],
+          }}
+        })
+        minNum = getMin(data.score[i].value) < minNum ? getMin(data.score[i].value) : minNum;
+      }
+
+
+    analyseOption = {
+      title: {
+        text: '成绩趋势对比图',
+        x:'center',
+        textStyle: {
+          fontSize: 36  
+        }
+      },
+      tooltip: {
+          trigger: 'axis'
+      },
+      legend: {
+        data:['班科目平均分','级科目平均分','我的分数'],
+        top: '10%',
+        textStyle: {
+          fontSize: 26  
+        }
+      },
+      grid: {
+          left: '10%',
+          right: '10%',
+          top: '30%',
+          containLabel: true
+      },
+      xAxis: {
+          type: 'category',
+          boundaryGap: false,
+          data: xData
+      },
+      yAxis: {
+          type: 'value',
+          name:'成绩趋势',
+          nameTextStyle: {
+            fontSize: 28  
+          },
+          nameGap: 40,
+          max: 100,
+          min: minNum,
+          data: [{
+            textStyle: {
+              fontSize: 26
+            } 
+          }, {
+            textStyle: {
+              fontSize: 26
+            } 
+          }, {
+            textStyle: {
+              fontSize: 26
+            } 
+          }, {
+            textStyle: {
+              fontSize: 26
+            } 
+          }, {
+            textStyle: {
+              fontSize: 26
+            } 
+          },{
+              textStyle: {
+                  fontSize: 26
+                } 
+              }]
+      },
+      series: serie
+    };
+    myAnalyse.setOption(analyseOption);
+  }, function(error){
+      console.log(error);
+  });
+
+  //图三
+  Ajax('get', hostAddress+'/score/getABCD.action', {clazzId: params.clazzId, examId:params.examId}, function(data){
+    console.log(data.data[0]);
+    distributionOption = {
+      title : {
+        text: '班级考试情况',
+        x:'center',
+        textStyle: {
+          fontSize: 36  
+        }
+      },
+      tooltip : {
+        trigger: 'item',
+        formatter: "{a} <br/>{b} : {c} ({d}%)"
+      },
+      legend: {
+        orient: 'vertical',
+        left: '8%',
+        top: '10%',
+        textStyle: {
+          fontSize: 28
+        },
+        data:['A 等级', 'B 等级', 'C 等级', 'D 等级'],
+      },
+      series : [
+      {
+        name:'成绩分布',
+        type:'pie',
+        center: ['50%', '55%'],
+        radius: ['0', '80%'],
+        roseType : 'radius',
+        data:[
+            {
+              value:data.data[0].number, 
+              name: data.data[0].name+' 等级', 
+              selected:true,
+              itemStyle: {
+                normal: {
+                  color: '#738ffe'
+                }
+            }}, {
+              value: data.data[1].number, 
+              name: data.data[1].name+' 等级',
+              itemStyle: {
+                normal: {
+                  color: 'rgb(105, 178, 115)' 
+                }
+            }}, {
+              value: data.data[2].number, 
+              name: data.data[2].name+' 等级',
+              itemStyle: {
+                normal: {
+                  color: 'rgb(225, 96, 67)'
+                }
+            }}, {
+              value: data.data[3].number, 
+              name: data.data[3].name+' 等级', 
+              itemStyle: {
+                normal: {
+                  color: 'rgb(250, 191, 20)' 
+                }
+            }},
+        ].sort(function (a, b) { return a.value - b.value}),
+      }
+      ],
+      textStyle: {
+      fontSize: 22  
+      }
+    };
+
+    myDistribution.setOption(distributionOption)    
+  }, function(error){
+      console.log(error);
+  });
+
+  //图四
+  Ajax('get', hostAddress+'/score/getExcellentRate.action', {examId: params.examId,termId:params.termId,clazzId: params.clazzId}, function(data){
+    var xData = [];
+    for(var i=0, len=data.name.length; i<len; i++) {
+      xData.push({
+        value:  data.name[i],
+        textStyle: {
+          fontSize: 24
+        }
+      })
+    }
+    columnOption = {
+      color: ['#3398DB'],
+        title: {
+          text: '优秀率情况',
+          x:'center',
+          textStyle: {
+            fontSize: 36,
+          }
+        },
+      tooltip : {
+        trigger: 'axis',
+        axisPointer : {      
+          type : 'shadow'        
+        }
+      },
+      grid: {
+        left: '6%',
+        right: '4%',
+        bottom: '3%',
+        top: '30%',
+        containLabel: true
+      },
+      xAxis : [{
+        type : 'category',
+        data: xData,
+        axisTick: {
+          alignWithLabel: true
+        }}],
+      yAxis : [{
+        type : 'value',
+        name:'优分率: %',
+        nameTextStyle: {
+          fontSize: 24  
+        },
+        nameGap: 40,
+        data: [{
+          textStyle: {
+            fontSize: 24
+          } 
+        }, {
+          textStyle: {
+            fontSize: 24
+          } 
+        }, {
+          textStyle: {
+            fontSize: 24
+          } 
+        }, {
+          textStyle: {
+            fontSize: 24
+          } 
+        }, {
+          textStyle: {
+            fontSize: 24
+          } 
+        }, {
+          textStyle: {
+            fontSize: 24
+          } 
+        }]
+      }],
+      series : [
+        {
+        name: '百分比',
+        type: 'bar',
+        barWidth: '60%',
+        data: data.value,
+        label: {
+            normal: {
+              show: true,
+              position: 'top',
+              textStyle: {
+                fontSize: 20  
+              }
+           }
+          },
+        }
+      ]
+    };
+    myColumn.setOption(columnOption);
+  }, function(error){
+    console.log(error);
+  });
+  
+}

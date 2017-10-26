@@ -1,0 +1,56 @@
+package com.topview.multimedia.service.evaluation;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+
+import org.apache.log4j.Logger;
+import org.springframework.stereotype.Service;
+
+import com.topview.multimedia.dao.EvaluationTemplateMapper;
+import com.topview.multimedia.dao.EvaluationTemplateTeacherMapper;
+import com.topview.multimedia.po.EvaluationTemplate;
+import com.topview.multimedia.po.EvaluationTemplateTeacher;
+import com.topview.multimedia.vo.EvaluationTemplateInfo;
+
+/** * @author  Rachel 
+@date 创建时间：2016年10月26日 下午5:20:34 * 
+@version 1.0 * 
+@parameter  *
+ @since  * 
+@return  */
+@Service
+public class TemplateAvailableProcess implements EvaluationProcess {
+	private static final Logger logger = Logger.getLogger(TemplateAvailableProcess.class);
+	@Resource
+	private EvaluationTemplateTeacherMapper ettm;
+	@Resource
+	private EvaluationTemplateMapper etm;
+
+	@Override
+	public boolean doProcess(EvaluationProcessContext context) {
+		try {
+			Map<String,Object> params = new HashMap<String,Object>();
+			params.put("user_id", context.getEti().getUploaderId());
+			Map<String,Object> param = new HashMap<String,Object>();
+			param.put("params", params);
+			List<EvaluationTemplateTeacher> list = ettm.findByMulti(param);
+			List<EvaluationTemplate> templateList = new ArrayList<EvaluationTemplate>();
+			for(EvaluationTemplateTeacher e : list){
+				templateList.add(etm.selectByPrimaryKey(e.getTemplateId()));
+			}
+			List<EvaluationTemplateInfo> templateListInfo = EvaluationTemplateInfo.changeToVo(templateList);
+			context.getEtir().setInfoResult(templateListInfo);
+			context.getEtir().setSuccess(true);
+			return true;
+		} catch (Exception e) {
+			logger.error("get available template fail"+e.getMessage());
+			e.printStackTrace();
+			return false;
+		}
+	}
+
+}

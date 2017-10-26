@@ -1,0 +1,72 @@
+package com.topview.school.po;
+
+import java.util.Date;
+/**
+ * 
+* @Title: Exam.java 
+* @Package com.topview.school.po 
+* @Description: 考试PO 
+* @author Sherlock-lee   
+* @date 2015年4月21日 上午12:53:17 
+* @version V1.0
+ */
+public class Exam implements Comparable<Exam>{
+
+	private String id;
+    private String tScCurriculaVariableId; //选课id
+    private Integer type;
+    private String name;
+    private Date exam_time;//按安卓方面需要添加的字段
+    private String templetId;   //考试类型Id
+     
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String gettScCurriculaVariableId() {
+        return tScCurriculaVariableId;
+    }
+
+    public void settScCurriculaVariableId(String tScCurriculaVariableId) {
+        this.tScCurriculaVariableId = tScCurriculaVariableId;
+    }
+
+    public Integer getType() {
+        return type;
+    }
+
+    public void setType(Integer type) {
+        this.type = type;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+	public Date getExam_time() {
+		return exam_time;
+	}
+
+	public void setExam_time(Date exam_time) {
+		this.exam_time = exam_time;
+	}
+	public String getTempletId() {
+		return templetId;
+	}
+	@Override
+	public int compareTo(Exam exam) {
+		return this.getExam_time().compareTo(exam.getExam_time());
+	}
+
+	public void setTempletId(String templetId) {
+		this.templetId = templetId;
+	}
+}

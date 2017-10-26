@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.topview.multimedia.dao.EvaluationTemplateTeacherMapper">
+  <resultMap id="BaseResultMap" type="com.topview.multimedia.po.EvaluationTemplateTeacher">
+    <id column="template_id" jdbcType="VARCHAR" property="templateId" />
+    <id column="user_id" jdbcType="VARCHAR" property="userId" />
+  </resultMap>
+  <delete id="deleteByTeacher" parameterType="com.topview.multimedia.po.EvaluationTemplateTeacher">
+    delete from t_mutimedia_evaluation_template_teacher
+    where template_id = #{templateId,jdbcType=VARCHAR}
+      and user_id = #{userId,jdbcType=VARCHAR}
+  </delete>
+  <insert id="insert" parameterType="com.topview.multimedia.po.EvaluationTemplateTeacher">
+    insert into t_mutimedia_evaluation_template_teacher (template_id, user_id)
+    values (#{templateId,jdbcType=VARCHAR}, #{userId,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.topview.multimedia.po.EvaluationTemplateTeacher">
+    insert into t_mutimedia_evaluation_template_teacher
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="templateId != null">
+        template_id,
+      </if>
+      <if test="userId != null">
+        user_id,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="templateId != null">
+        #{templateId,jdbcType=VARCHAR},
+      </if>
+      <if test="userId != null">
+        #{userId,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <sql id="page">
+    <if test="offset != null">
+      limit #{offset}
+    </if>
+    <if test="limit != null">
+      , #{limit}
+    </if>
+  </sql>  
+   <select id="findByMulti" resultMap="BaseResultMap">
+    select * from t_mutimedia_evaluation_template_teacher where 1 = 1
+      <if test="params != null">
+        <foreach item="item" index="key" collection="params.entrySet()">
+              and ${key} = #{item}</foreach> 
+      </if>
+      <include refid="page" />
+  </select>
+</mapper>

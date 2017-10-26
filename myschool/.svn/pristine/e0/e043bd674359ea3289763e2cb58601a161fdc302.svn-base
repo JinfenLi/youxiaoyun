@@ -1,0 +1,62 @@
+/**
+ * 
+ * Author: ccDeng
+ * Contact: 173634610@qq.com
+ * Description: 查看本校所有老师的选课情况的控制器
+ * 
+ */
+Ext.define("School.controller.exam.GetOtherCurriculaMgr", {
+	extend: "Ext.app.Controller",
+	views: [
+		"exam.GetOtherCurriculaMgr"
+	],
+
+	init: function(application) {
+	
+		this.control({
+			
+			//页面渲染后，设置默认学期
+			"getothercurriculamgr": {
+				afterrender: function(component) {
+					this.setDefaultValue(component);
+				}
+			},
+
+			//查询按钮的触发事件
+			'getothercurriculamgr button#search': {
+				click: function(button) {
+					this.searchCurriculamgr(button);
+				}
+			}
+
+		});
+	},
+
+	//设置默认学期
+	setDefaultValue: function(component) {
+		"use strict";
+
+		var termCombo = component.down('combobox#termcombo');
+
+		//设置学期选择的默认值为当前学期(currentSemester===1的学期)
+		School.util.Util.setComboboxValue(termCombo, 'currentSemester',
+				"id", 1);
+	},
+
+	//查询选课情况
+	searchCurriculamgr: function(button) {
+		var store = button.up('grid').getStore(),
+			gradeId = button.up('toolbar').down('#gradeselect').getValue(),
+			semesterId = button.up('toolbar').down('#termcombo').getValue(),
+			classId = button.up('toolbar').down('#classselect').getValue();
+		if (!classId) {
+			School.util.Util.showErrorMsg('班级选择为空！');			
+		}
+		store.load({
+			params: {
+				semesterId: semesterId,
+				classId: classId
+			}
+		});
+	}
+});

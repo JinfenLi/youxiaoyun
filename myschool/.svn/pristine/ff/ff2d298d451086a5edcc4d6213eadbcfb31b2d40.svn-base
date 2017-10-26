@@ -1,0 +1,252 @@
+package com.topview.school.controller.msg_push;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.multipart.MultipartFile;
+
+import com.topview.push.service.PushService;
+import com.topview.push.vo.HistoryMessageVo;
+import com.topview.push.vo.OfflineMessageVo;
+import com.topview.school.po.Parent;
+import com.topview.school.po.Teacher;
+import com.topview.school.service.user.parent.ParentService;
+import com.topview.school.service.user.teacher.TeacherService;
+import com.topview.school.util.DateFormatUtil;
+import com.topview.school.util.FileUploadUtil;
+import com.topview.school.util.JSONUtil;
+import com.topview.school.util.SimpleAudioChange;
+import com.topview.school.util.UUIDUtil;
+import com.topview.school.vo.FileUploadVo;
+import com.topview.school.vo.User.UserInfo;
+
+/**
+ * @Description 消息推送controller,
+ * @Author <wuyiliang 757210697@qq.com>
+ * @Date 2015年8月16日 下午10:38:24
+ * @CopyRight 2015 TopView Inc
+ * @version V1.0
+ */
+@Controller
+@RequestMapping(value = "/push1/*", produces = "text/html;charset=UTF-8")
+public class MsgPushController {
+
+	//注意：登陆后的补发接口写在controller/user/UserController.java中(getOfflineMessage)
+	@Resource
+	private PushService pushService;
+	@Resource
+	private ParentService parentService;
+	@Resource
+	private TeacherService teacherService;
+
+	/**
+	 * 我的短信群发接口一（数组方式传参）
+	 * 
+	 * @param senderId
+	 *            发送者id
+	 * @param studentsId
+	 *            学生id，接收者若为教师则对应的学生id为空字符串，用逗号分隔
+	 * @param receiversId
+	 *            接收者id（用逗号分隔多个接收者）
+	 * @param content
+	 *            短信内容
+	 * @return
+	 */
+	@RequestMapping("saveShortMessage")
+	@ResponseBody
+	public String saveShortMessage(String senderId, String studentsId,
+			String receiversId, String content) {
+		Map<String, Object> resultMap = new HashMap<String, Object>();
+		String sendTime = DateFormatUtil.formatDateToSeconds(new Date());
+		String[] rsId = receiversId.split(",");
+		String[] stusId = studentsId.split(",");
+		if (rsId.length != stusId.length) {
+			resultMap.put("success", false);
+			resultMap.put("msg", "学生id与接收者id数量不匹配");
+			return JSONUtil.toObject(resultMap).toString();
+		}
+
+		for (int i = 0; i < rsId.length; i++) {
+			OfflineMessageVo vo = new OfflineMessageVo();
+			vo.setContent(content);
+			vo.setEnvelopeId(UUIDUtil.getUUID());
+			vo.setReceiverId(rsId[i]);
+			vo.setSenderId(senderId);
+			vo.setSendTime(sendTime);
+			vo.setSms(1); // 我的短信特有标志位
+			vo.setStatue("1"); // 未接收状态
+			vo.setStudentId(stusId[i]);
+			vo.setMessageType("1"); // 消息类型为文字
+			vo.setType("2"); // 所属模块为我的短信
+			pushService.saveOfflineMessage(vo); // 先保存记录到数据库
+			vo.setMessageType("文字"); // 客户端解析约定使用中文标示
+			vo.setType("我的短信");
+			pushService.pushMessage(vo); // 推送到客户端
+		}
+		resultMap.put("success", true);
+		resultMap.put("sendTime", sendTime);
+		return JSONUtil.toObject(resultMap).toString();
+	}
+
+	/**
+	 * 家园桥离线消息、我的短信保存接口 消息类型messageType：1代表文字，2代表图片， 3代表语音， 4代表视频， 5代表文件 --必须传
+	 * 消息所属模块type ： 约定1为家园桥，2为我的短信，3为请假申请，4为成绩推送，5为系统通知 --必须传
+	 * 
+	 * @param files
+	 * @param vo
+	 *            （其中必须传的是content、receiverId、senderId）
+	 * @param session
+	 * @param request
+	 * @return
+	 * @throws IOException
+	 */
+	@RequestMapping(value = "/saveOfflineMessage", method = RequestMethod.POST)
+	public @ResponseBody String saveOfflineMessage(OfflineMessageVo vo,
+			HttpSession session, HttpServletRequest request) throws IOException {
+
+		Map<String, Object> resultMap = new HashMap<String, Object>();
+		String[] filter = { "files" };
+
+		vo.setEnvelopeId(UUIDUtil.getUUID());
+		vo.setStatue("1"); // 设置状态为未发送
+		vo.setSendTime(DateFormatUtil.formatDateToSeconds(new Date())); // 设置发送时间
+
+		/**
+		 * 处理"我的短信"（消息类型为2）：1.保存进数据库; 2.将消息类型和所属模块改为文字; 3.推送
+		 */
+		if ("2".equals(vo.getType())) {
+			vo.setSms(1); // sms标志为1以便之后使用短信机发送
+			pushService.saveOfflineMessage(vo);
+			vo.setMessageType("文字");
+			vo.setType("我的短信");
+		}
+		/**
+		 * 处理家园桥消息：1.判断有无文件：若有文件则保存文件，设置推送消息内容为文件的路径并保存到数据库; 若无文件则直接保存到数据库
+		 * 2.用文字表示消息类型和所属模块，然后推送
+		 */
+		else {
+			MultipartFile[] files = vo.getFiles();
+			if (files != null && files.length > 0 && vo != null) {
+				if (files[0].getSize() > 0) { // 家园桥聊天一次请求最多只能有一个多媒体文件
+
+					FileUploadVo fileUploadVo = FileUploadUtil.uploadFile(files[0], "chat/"+vo.getSenderId()+"/"+vo.getReceiverId(), request, true);
+					
+					vo.setContent(fileUploadVo.getRelativePath()); // 消息内容为图片url
+
+					if ("3".equals(vo.getMessageType())
+							&& fileUploadVo.getFileName().contains(".amr")) { // 如果是语音并且是amr格式则转成mp3
+						File mp3 = SimpleAudioChange.changeToMp3WithFfmpeg(
+								new File(fileUploadVo.getRealPath() + "/" + fileUploadVo.getFileName()),
+								fileUploadVo.getRealPath());
+						if (mp3 != null) {
+							String relativePath = fileUploadVo.getRelativePath().replaceAll(fileUploadVo.getFileName(), mp3.getName());
+							vo.setContent(relativePath);
+						}
+					}
+
+				}
+			}
+			pushService.saveOfflineMessage(vo);
+			switch (vo.getMessageType()) {
+			case "1":
+				vo.setMessageType("文字");
+				break;
+			case "2":
+				vo.setMessageType("图片");
+				break;
+			case "3":
+				vo.setMessageType("语音");
+				break;
+			case "4":
+				vo.setMessageType("视频");
+				break;
+			case "5":
+				vo.setMessageType("文件");
+				break;
+			}
+			vo.setType("家园桥");
+		}
+		pushService.pushMessage(vo); //TODO 阻塞问题，考虑使用Spring异步标签
+		resultMap.put("sendTime", vo.getSendTime());
+		resultMap.put("success", true);
+		resultMap.put("messageModel", vo);
+		return JSONUtil.toObject(resultMap, filter).toString();
+	}
+
+	/**
+	 * 根据信封id修改信息状态为已发送
+	 * 
+	 * @param session
+	 * @param envelopeId
+	 * @return
+	 */
+	@RequestMapping("/updateMessage")
+	@ResponseBody
+	public String updateMessage(HttpSession session, String envelopeId) {
+		Map<String, Object> resultMap = new HashMap<String, Object>();
+		resultMap.put("success", false);
+		if (pushService.updateMessage(envelopeId).isSuccess()) {
+			System.out.println(envelopeId + "确认收到");
+			resultMap.put("success", true);
+		}
+		return JSONUtil.toObject(resultMap).toString();
+	}
+
+	/**
+	 * web端查看我的短信记录
+	 * 
+	 * @param session
+	 * @param beginTime
+	 * @param endTime
+	 * @return
+	 */
+	@RequestMapping("getHistoryMessage")
+	@ResponseBody
+	public String getHistoryMessage(HttpSession session, String beginTime,
+			String endTime) {
+		Map<String, Object> resultMap = new HashMap<String, Object>();
+		String[] filter = {"receiversId"};
+		UserInfo userInfo = (UserInfo) session.getAttribute("currentUser");
+		String senderId = userInfo.getUser_id();
+		// 先查询出同一条短信的所有接收者id，然后再分别去查询接收者姓名
+		List<HistoryMessageVo> historyMessageVos = pushService
+				.getHistoryMessage(senderId, beginTime, endTime)
+				.getHistoryMessageVos();
+		for (int i = 0; i < historyMessageVos.size(); i++) {
+			List<String> receiversId = historyMessageVos.get(i)
+					.getReceiversId();
+			List<String> receiversName = new ArrayList<String>();
+			for (int j = 0; j < receiversId.size(); j++) {
+				String recId = receiversId.get(j);
+				Teacher t = teacherService.selectTeacherById(recId);
+				if (t != null) {
+					receiversName.add(t.getName());
+				} else {
+					Parent p = parentService.selectByPrimaryKey(recId);
+					if (p != null) {
+						receiversName.add(p.getName());
+					} else {
+						continue;
+					}
+				}
+			}
+			historyMessageVos.get(i).setReceiversName(receiversName);
+		}
+		resultMap.put("success", true);
+		resultMap.put("historyMessages", historyMessageVos);
+		return JSONUtil.toObject(resultMap, filter).toString();
+	}
+}

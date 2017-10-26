@@ -1,0 +1,238 @@
+package com.topview.school.controller.school.grade;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpSession;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.topview.school.po.Departments;
+import com.topview.school.po.Grade;
+import com.topview.school.po.Teacher;
+import com.topview.school.po.UserRoleKey;
+import com.topview.school.service.school.department.DepartmentService;
+import com.topview.school.service.school.grade.GradeService;
+import com.topview.school.service.system.authc.RoleType;
+import com.topview.school.service.system.authc.UserRoleService;
+import com.topview.school.service.user.teacher.TeacherService;
+import com.topview.school.util.JSONUtil;
+import com.topview.school.util.UUIDUtil;
+import com.topview.school.vo.User.UserInfo;
+import com.topview.school.vo.school.GradeVo;
+
+/**
+ * @Description 部门controller
+ * @Author <wuyiliang 757210697@qq.com>
+ * @Date 2015年8月16日 下午10:55:49
+ * @CopyRight 2015 TopView Inc
+ * @version V1.0
+ */
+@Controller
+@RequestMapping(value = "/grade", produces = "text/html;charset=UTF-8")
+public class GradeController {
+
+	@Resource
+	private GradeService gradeService;
+	@Resource
+	private TeacherService teacherService;
+	@Resource
+	private DepartmentService departmentService;
+	@Autowired
+	private UserRoleService roleService;
+	private static final String roleId = RoleType.MONITOR.value();
+
+	/**
+	 * 新建一个年级(同时建立一个“年级组部门，开通多媒体空间和注册教子学园信息板块)
+	 * 
+	 * @param session
+	 * @param grade
+	 * @return
+	 */
+	@RequestMapping(value = "/createGrade", method = RequestMethod.POST)
+	@ResponseBody
+	public String createGrade(HttpSession session, GradeVo gradeVo,
+			String teacherId) {
+		Map<String, Object> resultMap = new HashMap<String, Object>();
+		if (gradeVo.gettScSchoolId() == null
+				|| "".equals(gradeVo.gettScSchoolId())) {
+			UserInfo userInfo = (UserInfo) session.getAttribute("currentUser");
+			gradeVo.settScSchoolId(userInfo.getSchool_id());
+		}
+		gradeVo.setId(UUIDUtil.getUUID());
+		if (gradeService.createGrade(GradeVo.changeToPo(gradeVo))) {
+			if (teacherId != null && !"".equals(teacherId)) {
+				addRole(teacherId);// 添加新的负责人
+			}
+			Departments departments = new Departments();
+			departments.setId(gradeVo.getId()); // 这里为了区分是年级部门，将部门的id赋值为年级的id
+			departments.setInfo(gradeVo.getInfo());
+			departments.setName(gradeVo.getName() + "年级组");
+			departments.setTemplate(false);
+			departments.settScSchoolId(gradeVo.gettScSchoolId());
+			departments.setType("年级组");
+			departmentService.createDepartment(departments);
+
+			if (teacherId != null && !"".equals(teacherId)) { // 如果创建年级同时指定了级长则进入
+				Teacher teacher = new Teacher();
+				teacher.setId(teacherId);
+				teacher.settScGradeId(gradeVo.getId());
+				teacherService.updateTeacherInfo(teacher);
+			}
+			resultMap.put("gradeInfo", gradeVo);
+			resultMap.put("success", true);
+		} else {
+			resultMap.put("success", false);
+		}
+		return JSONUtil.toObject(resultMap).toString();
+	}
+
+	/**
+	 * 删除年级
+	 * 
+	 * @param session
+	 * @param id
+	 * @return
+	 */
+	@RequestMapping("/deleteGrade")
+	@ResponseBody
+	public String delectGrade(HttpSession session, String id) {
+		Map<String, Object> resultMap = new HashMap<String, Object>();
+
+		String tId = teacherService.getMonitorId(id);
+		delRole(tId);// 解除级长角色
+
+		try {
+			resultMap.put("success", gradeService.delectGrade(id));
+		} catch (Exception e) {
+			resultMap.put("success", false);
+			resultMap.put("msg", "该年级下尚有班级无法删除");
+		}
+		return JSONUtil.toObject(resultMap).toString();
+	}
+
+	/**
+	 * 获取指定学校的所有年级并显示年级级长
+	 * 
+	 * @param session
+	 * @param schoolId
+	 * @return
+	 */
+	@RequestMapping("/getAllGrade")
+	@ResponseBody
+	public String getAllGrade(HttpSession session, String schoolId) {
+		Map<String, Object> resultMap = new HashMap<String, Object>();
+		List<Grade> grades = gradeService.getAllGrade(schoolId);
+
+		if (grades != null) {
+			resultMap.put("success", true);
+			List<GradeVo> vos = GradeVo.changeToVo(grades);
+			for (int i = 0; i < vos.size(); i++) {
+				resultMap.put("gradeId", vos.get(i).getId());
+				List<Teacher> teachers = teacherService.getTeacher(resultMap); // 查询年级级长
+				if (teachers.size() > 0) {
+					vos.get(i).setGradeTeacher(teachers.get(0).getName());
+				}
+			}
+			resultMap.clear();
+			resultMap.put("grades", vos);
+			resultMap.put("success", true);
+		} else {
+			resultMap.put("success", false);
+			resultMap.put("msg", "该学校尚无建立任何年级");
+		}
+		return JSONUtil.toObject(resultMap).toString();
+	}
+
+	/**
+	 * 修改年级信息
+	 * 
+	 * @param session
+	 * @param vo
+	 * @return
+	 */
+	@RequestMapping("/updateGrade")
+	@ResponseBody
+	public String updateGrade(HttpSession session, GradeVo vo, String teacherId) {
+		Map<String, Object> resultMap = new HashMap<String, Object>();
+		if (teacherId != null && !"".equals(teacherId)) {
+
+			Map<String, Object> map = new HashMap<String, Object>();
+			map.put("gradeId", vo.getId());
+			String tId = teacherService.getMonitorId(vo.getId());// 获取级长的id
+
+			if (tId != null && !tId.equals(teacherId)) {
+
+				delRole(tId);// 解除级长角色
+			}
+			teacherService.cancelPosition(map); // 取消已有的级长
+
+			Teacher teacher = new Teacher();
+			teacher.setId(teacherId);
+			teacher.settScGradeId(vo.getId());
+			teacherService.updateTeacherInfo(teacher); // 任命新的级长
+
+			addRole(teacherId);// 添加新的负责人
+		}
+		resultMap.put("success", gradeService.updateGrade(vo)); // TODO 事务管理
+		return JSONUtil.toObject(resultMap).toString();
+	}
+
+	/**
+	 * 获取用户所属年级
+	 * @param session
+	 * @return
+	 */
+	@RequestMapping("getMyGrade")
+	@ResponseBody
+	public String getMyGrade(HttpSession session) {
+		Map<String, Object> resultMap = new HashMap<String, Object>();
+		UserInfo userInfo = (UserInfo) session.getAttribute("currentUser");
+		if(userInfo == null) {
+			resultMap.put("success", false);
+			return JSONUtil.toObject(resultMap).toString();
+		}
+		resultMap.put("success", true);
+		List<Grade> grades = gradeService.getMyGrade(userInfo);
+		resultMap.put("grades", GradeVo.changeToVo(grades));
+		return JSONUtil.toObject(resultMap).toString();
+	}
+	/**
+	 * 
+	 * @Title: addRole
+	 * @Description: TODO
+	 * @param @param tId
+	 * @return void
+	 * @throws
+	 */
+	private void addRole(String tId) {
+
+		if (!roleService.hasRole(tId, roleId)) {
+
+			// 添加课程复杂人角色
+			UserRoleKey key = new UserRoleKey(tId, roleId);
+			roleService.insert(key);// 添加新的负责人
+		}
+	}
+
+	/**
+	 * 
+	 * @Title: delRole
+	 * @Description: TODO
+	 * @param @param tId
+	 * @return void
+	 * @throws
+	 */
+	private void delRole(String tId) {
+
+		UserRoleKey key = new UserRoleKey(tId, roleId);
+		roleService.deleteByPrimaryKey(key);
+	}
+
+}

@@ -1,0 +1,55 @@
+package com.topview.multimedia.service.folder.file;
+
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.topview.multimedia.dao.MultimediaFileMapper;
+import com.topview.multimedia.dao.MultimediaFolderMapper;
+
+/** * @author  Rachel 
+@date 创建时间：2016年7月29日 下午8:54:55 * 
+@version 1.0 * 
+@parameter  *
+ @since  * 
+@return  */
+@Service
+public class FileDeleteProcess implements FileProcess {
+
+	@Autowired
+	private MultimediaFolderMapper multimediaFolderMapper;
+	@Autowired
+	private MultimediaFileMapper multimediaFileMapper;
+
+	private static final Logger logger = Logger
+			.getLogger(FileDeleteProcess.class);
+
+	public boolean doProcess(FileProcessContext context) {
+		
+		context.getResult().setSuccess(false);
+		try { 
+			
+//			MultimediaFolder folder = multimediaFolderMapper.findById(context
+//					.getInfo().gettMId());
+			int flag =multimediaFileMapper.deleteByPrimaryKey(context.getInfo().getId()); 
+			if(flag>0){
+//				folder.setFileCount(folder.getFileCount() - 1);
+//			folder.setUpdateTime(new Date());
+//			multimediaFolderMapper.updateByPrimaryKeySelective(folder);
+			context.getResult().setSuccess(true);
+			return true;
+			}
+			context.getResult().setSuccess(false);
+			return false;
+		} catch (Exception e) {
+			logger.error("delete file fail" + e.getMessage());
+			e.printStackTrace();
+			
+			return false;
+		}
+	
+	}
+
+	
+
+}

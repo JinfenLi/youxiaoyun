@@ -1,0 +1,605 @@
+/*
+ path: store.class.Appraise
+ author: Drake
+ description: 评价管理
+ */
+
+Ext.define('School.controller.clazz.Appraise', {
+	extend: 'Ext.app.Controller',
+	requires: [],
+
+	stores: [
+		'school.Semester'
+	],
+
+	views: [
+		'clazz.appraise.AppraiseMgr',
+		'clazz.appraise.AppraiseWin',
+		'clazz.appraise.WordTpl',
+		'clazz.appraise.IdentityWin'
+	],
+
+	refs: [{
+		ref: 'appraiseList',
+		selector: 'appraisemgr'
+	}, {
+		ref: 'termCombo',
+		selector: 'appraisemgr combo#termCombo' // 学期下拉框
+	}, {
+		ref: 'stageCombo',
+		selector: 'appraisemgr combo#stageCombo' // 学期阶段(期末，期中)下拉框
+	}, {
+		ref: 'classCombo',
+		selector: 'appraisemgr combo#classCombo' // 班级下拉框
+	}, {
+		ref: 'identityCombo',
+		selector: 'appraisemgr combo#identityCombo' // 评价身份下拉框
+	}, {
+		ref: 'identityWin',
+		selector: 'identitywin'
+	}, {
+		ref: 'wordTplList',
+		selector: 'wordtpl'
+	}],
+
+	init: function (application) {
+		this.control({
+			'appraisemgr': {
+				selectionchange: this.checkIfAppraised
+			},
+
+			// 当前班级combo
+			'appraisemgr #classCombo': {
+				render: this.setDefaultClass
+			},
+			// 当前学期combo
+			'appraisemgr #termCombo': {
+				render: this.setDefaultTerm
+			},
+
+
+			//'appraisemgr #identityCombo': {
+			//	beforerender: this.setIdentity
+			//},
+
+			'appraisemgr toolbar button#add': {
+				click: this.addAppraiseWin
+			},
+			'appraisemgr toolbar button#edit': {
+				click: this.editAppraiseWin
+			},
+			'appraisemgr toolbar button#delete': {
+				click: this.rmAppraise
+			},
+			'appraisemgr toolbar button#download': {
+				click: this.doDownloadAppraise
+			},
+
+			//上传评价模板
+			"appraisemgr toolbar button#createTpl": {
+				click: this.createTpl,
+			},
+
+			"createtpl radiogroup#type": {
+				afterrender: function(component) {
+					this.hideSuperTpl(component);
+				}
+			},
+
+			//保存评价模板
+			"createtpl button#save": {
+				click: this.saveNewTpl
+			},
+
+			// 所有combo
+			'appraisemgr combo#stageCombo': {
+				select: this.loadAppraiseList
+			},
+
+			"appraisemgr #classCombo, appraisemgr #termCombo": {
+				change: function() {
+					this.setIdentity();
+				}
+			},
+
+			// 评价窗口
+			'appraisewin button#save': {
+				click: this.doSaveAppraise
+			},
+
+			'appraisewin button#reset': {
+				click: this.resetForm
+			},
+
+			'appraisewin wordtpl': {
+				selectionchange: this.doSelectTpl,
+				render: this.getSubjectWordTpl
+			},
+
+			'appraisewin wordtpl #type': {
+				change: function(_this, newValue) {
+					this.getSubjectWordTpl();
+				}
+			}
+
+			//'appraisewin #subjectCombo': {
+			//	afterrender: this.setDefaultSubject,
+			//	select: this.getSubjectWordTpl
+			//},
+
+			//'identitywin #select': {
+			//	//click: this.setIdentity
+			//}
+		});
+	},
+
+
+
+
+
+  // ==================== <评价窗口> ===========================
+  // 选择评语模版
+  doSelectTpl: function (self, selected) {
+    var form = self.view.up('window').down('form'),
+      wordField = form.down('[name=word]');
+
+    if (!selected.length) {
+      wordField.setValue('');
+      return 0;
+    }
+
+    var tpl = selected[0].get('word');
+    wordField.setValue(tpl);
+
+  },
+
+
+  //如果当前用户不是超级管理员，
+  //则隐藏掉模板类型里面的超级模板
+  hideSuperTpl: function(component) {
+
+  	Ext.Ajax.request({
+		url: zyHost + "appraiseSubject/getRole.action",
+		success: function (res) {
+			var response = School.util.Util.decodeJSON(res.responseText);
+			if(response.result !== "超级管理员") {
+				component.down("#super").destroy();
+			}
+			
+		}
+	});
+  	
+  },
+
+  // 获取该科目下的所有评语模版
+  getSubjectWordTpl: function (combo) {
+    var identityCombo = this.getIdentityCombo(),
+    	records = identityCombo.getStore(),
+    	rawValue = identityCombo.getRawValue(),
+    	subject = School.util.Util.getOtherValue(rawValue, records, "name", "subject");
+
+      // record = identityCombo.findRecordByValue(identityCombo.getValue()),
+      // subject = record.get('subject');
+
+    // console.log(identityCombo.getStore().getAt(0).raw);
+    // console.log(identityCombo.getStore().getAt(1).raw);
+    // console.log(identityCombo.getStore().getAt(2).raw);
+    // console.log(identityCombo.getStore().getAt(3).raw);
+    
+
+    var store = this.getWordTplList().getStore();
+
+    store.load({
+      params: {
+        subject: subject
+      },
+    callback: function (records) {
+	    if (records && records.length === 0) {
+		    School.util.Util.showWarningMsg('该科目下的评语模版为空');
+	    }
+    }
+    });
+  },
+
+	// 创建修改评价窗口
+	editAppraiseWin: function (btn) {
+		var selectedStudent = this.getSelectedStudent();
+
+		var win = Ext.widget('appraisewin');
+		win.setTitle('正在编辑"' + selectedStudent.records[0].get('studentName') +
+			'"...等学生的评价信息');
+		win.show();
+
+		var form = win.down('form');
+		form.loadRecord(selectedStudent.records[0]);
+	},
+
+	// 保存评价
+	doSaveAppraise: function (btn) {
+		var me = this,
+			win = btn.up('window'),
+			form = win.down('form');
+
+		var params = form.getValues();
+
+		var appraiseList = me.getAppraiseList(),
+			classCombo = appraiseList.down('#classCombo'),
+			stageCombo = appraiseList.down('#stageCombo'),
+			identityCombo = appraiseList.down('#identityCombo');
+
+		params.class_id = classCombo.getValue();
+		params.stage = stageCombo.getValue();
+		params.type = identityCombo.getValue();
+
+		var selectedStudent = this.getSelectedStudent();
+		// 判断是修改还是新增评价
+		var editAppraise = false;
+		Ext.each(selectedStudent.records, function (item, index, self) {
+			if (item.get('id')) {
+				editAppraise = true;
+				return 0;
+			}
+		});
+
+		var url = '';
+		if (editAppraise) {
+			url = '/school/appraise/updateAppraise.action';
+			params.appraise_id = selectedStudent.appraiseIds.join(',');
+		} else {
+			url = '/school/appraise/saveAppraise.action';
+			params.studentIds = selectedStudent.studentIds.join(',');
+		}
+
+		Ext.Msg.wait("请耐心等待");
+		Ext.Ajax.request({
+			url: url,
+			params: params,
+
+			failure: function (res) {
+				School.util.Util.showErrorMsg(res);
+			},
+			success: function (res) {
+				var result = School.util.Util.decodeJSON(res.responseText);
+
+				if (!result.success) {
+					School.util.Util.showErrorMsg('操作失败');
+					return 0;
+				}
+
+				School.util.Util.showSuccessMsg('操作成功');
+				me.loadAppraiseList();
+				win.close();
+			}
+		})
+	},
+
+	// 增加评价窗口
+	addAppraiseWin: function (btn) {
+		var selectedStudent = this.getSelectedStudent();
+		if (!selectedStudent) return 0;
+
+		var win = Ext.widget('appraisewin');
+		win.setTitle('正在编辑"' + selectedStudent.records[0].get('studentName') +
+			'"...等学生的评价信息');
+		win.show();
+	},
+
+  //// 获取该用户/教师所教的科目
+  //getSubject: function () {
+  //	Ext.Ajax.request({
+  //   url: '/school/appraiseSubject/getSubject.action',
+  //		params: {
+  //			id: globalUserInfo.user_id
+  //		},
+  //		failure: function (res) {
+  //			School.util.Util.showErrorMsg('无法获取科目');
+  //		},
+  //		success: function (res) {
+  //			return School.util.Util.decodeJSON(res.responseText);
+  //		}
+  //	})
+  //},
+
+  // 设置默认科目
+  //setDefaultSubject: function (combo) {
+  // var identity = this.getIdentityCombo().findRecordByValue()
+  //   subject = identity.subject;
+  //
+  // combo.setValue(subject);
+  // this.getSubjectWordTpl(combo);
+  //
+  //	//var store = combo.getStore();
+  // //
+  //	//store.load({
+  //	//	scope: this,
+  //	//	callback: function (records) {
+  //	//		if (!records) {
+  //	//			School.util.Util.showErrorMsg('无法获取科目');
+  //	//			return 0;
+  //	//		}
+  // //
+  //	//		combo.setValue(records[0].get('name'));
+  // //
+  //	//		this.getSubjectWordTpl(combo);
+  //	//	}
+  //	//})
+  //},
+
+  // ==================== </评价窗口> ===========================
+
+
+
+
+  //================= <评价主面板> ==========================
+  // 导出评价为Excel表格
+  doDownloadAppraise: function () {
+    var inputs = '';
+    var url = '/school/appraise/downloadAppraise.action';
+
+    inputs = '<input type="text" name="Semester" value="' +
+      this.getTermCombo().getValue() + '"/>'  +
+
+      '<input type="text" name="stage" value="' +
+      this.getStageCombo().getValue() + '"/>' +
+
+      '<input type="text" name="classid" value="' +
+      this.getClassCombo().getValue() + '"/>' +
+
+      '<input type="text" name="type" value="' +
+      this.getIdentityCombo().getValue() + '"/>';
+
+    School.util.Util.downloadFile(url, inputs);
+  },
+
+  //新建评价
+  createTpl: function(btn) {
+  	Ext.create("School.view.clazz.appraise.CreateTpl");
+  	var me = this,
+			toolbar = Ext.ComponentQuery.query("appraisetoolbar")[0],
+			classCombo = toolbar.down("#classCombo"),
+			termCombo = toolbar.down("#termCombo") ;
+		//获取评价管理面板中的班级跟学期信息
+		var createtpl = Ext.ComponentQuery.query("createtpl")[0],
+			fitToSubject = createtpl.down("#fitToSubject");
+		// fitToSubject.setValue(fitToSubject.getStore().getAt(0).get("name"));
+		//因为要自动适配身份，所以采用回调函数修改值，load store后进行修改，不能直接修改
+		fitToSubject.getStore().load({
+			params: {
+				classId: classCombo.getValue(),
+				semesterId: termCombo.getValue()
+			},
+			callback: function() {
+				var record = fitToSubject.getStore().getAt(0);
+				record && fitToSubject.setValue(record.get("name"));		
+			}
+		});
+  },
+
+  saveNewTpl: function(btn) {
+
+  	"use strict"; 
+
+  	var win = btn.up("createtpl"),
+  		url = zyHost + "appraiseSubject/saveAppraiseSubjectByExcel.action",
+  		store = null,
+  		msg = "请选择excel文件",
+  		type = ".xls",
+  		formValues = {};
+
+  	//检测表单是否填写完整
+	if( !win.down("form").getForm().isValid()) {
+		School.util.Util.showErrorMsg("适用科目和评语内容不可以为空！");
+		return 0;
+	}
+
+	formValues = win.down("form").getForm().getValues(false);
+	formValues.subject = win.down("#fitToSubject").getRawValue();
+
+	console.log(formValues);
+
+  	School.util.Util.uploadFile(btn, url, formValues, msg, store, type);
+  },
+
+  // 删除评价
+  rmAppraise: function (btn) {
+    var selectedStudent = this.getSelectedStudent(),
+      records = selectedStudent.records;
+
+    Ext.Msg.wait("请耐心等待");
+    Ext.Ajax.request({
+      scope: this,
+      url: '/school/appraise/deleteAppraise.action',
+      params: {
+        ids: selectedStudent.appraiseIds.join(',')
+      },
+      failure: function (res) {
+        School.util.Util.showErrorMsg(res);
+      },
+      success: function (res) {
+        var response = School.util.Util.decodeJSON(res.responseText);
+        if (!response.success) {
+          School.util.Util.showErrorMsg(response.msg || '操作失败');
+          return 0;
+        }
+
+        School.util.Util.showSuccessMsg('成功删除"' + records[0].get('studentName') +
+          '"等学生的评价');
+
+        this.loadAppraiseList();
+
+      }
+
+    });
+  },
+
+  //加载评价列表
+	loadAppraiseList: function (self) {
+		var appraiseList = this.getAppraiseList(),
+			store = appraiseList.getStore();
+
+		store.removeAll();
+		store.load({
+			params: {
+				classid: this.getClassCombo().getValue(),
+				Semester: this.getTermCombo().getValue(),
+				stage: this.getStageCombo().getValue(),
+				type: this.getIdentityCombo().getValue()
+			},
+			callback: function (records) {
+				if (!records) {
+					School.util.Util.showWarningMsg('没有评价数据');
+					return 0;
+				}
+			}
+		});
+	},
+
+	// 设置默认班级
+	setDefaultClass: function (combo) {	
+
+		combo.setValue(zy_classId);
+		
+	},
+
+	// 设置默认学期
+	setDefaultTerm: function (combo) {
+		var store = combo.getStore();
+
+		store.load({
+			scope: this,
+			callback: function (records, operation, success) {
+
+				if (!records) {
+					School.util.Util.showErrorMsg('学期列表为空');
+					return 0;
+				}
+
+				School.util.Util.setComboboxValue(combo,
+						"currentSemester", "id", 1);
+
+
+				// 因为setIdentity()要用到这个combo的值
+        // 但由于load()是异步的，我只能这样。
+        //this.setIdentity();
+			}
+		})
+	},
+
+  // 设置评价身份
+	setIdentity: function () {
+		var me = this,
+			toolbar = Ext.ComponentQuery.query("appraisetoolbar")[0],
+			identityCombo = toolbar.down("#identityCombo"),
+			classCombo = toolbar.down("#classCombo"),
+			termCombo = toolbar.down("#termCombo") ;
+
+		identityCombo.getStore().load({
+			params: {
+				classId: classCombo.getValue(),
+				semesterId: termCombo.getValue()
+			},
+			callback: function() {
+				var record = identityCombo.getStore().getAt(0);
+				record && identityCombo.setValue(record.get("type"));
+				me.loadAppraiseList();			
+			}
+		});
+    // var store = this.getIdentityCombo().getStore();
+    //
+    //store.load({
+    //	id: globalUserInfo.user_id,
+    //	callback: function (records, operation, success) {
+    //		Ext.each(records, function (record) {
+    //		})
+    //	}
+    //});
+  },
+
+  //================= </评价主面板> ==========================
+
+
+
+  //================= <util> ==========================
+  // 获取选中的学生
+  // isSelectChange: 如果选择学生之后，又重新加载store，就会触发selectchange事件
+  // 而他就会调用这个函数，但是此时的selectRecord是空的
+  getSelectedStudent: function (isSelectChange) {
+    var appraiseList = this.getAppraiseList();
+    var store = appraiseList.getStore();
+
+    var records = appraiseList.getSelectionModel().getSelection();
+
+    if (!isSelectChange && !records.length) {
+      School.util.Util.showErrorMsg('请先选择一名学生');
+      return 0;
+    }
+
+    var studentIds = [],
+      appraiseIds = [];
+
+    Ext.each(records, function (record, index) {
+      studentIds.push(record.get('studentId'));
+      appraiseIds.push(record.get('id'));
+    });
+
+    // 保存选中的学生id
+    //this.selectedStudentIds = studentIds;
+
+    return {
+      records: records,
+      appraiseIds: appraiseIds,
+      studentIds: studentIds
+    };
+  },
+
+  // 清空表单
+  resetForm: function (btn) {
+    var form = btn.up('window').down('form');
+    form.getForm().reset();
+  },
+
+  // 检查是否评价过，是的话就无法添加添加
+  checkIfAppraised: function (self, selected) {
+    var appraiseList = this.getAppraiseList(),
+      addBtn = appraiseList.down('button#add'),
+      editBtn = appraiseList.down('button#edit'),
+      rmBtn = appraiseList.down('button#delete');
+
+    var selectedStudents = this.getSelectedStudent(true);
+
+    // flags
+    var unAppraise = null,
+      appraised = null;
+
+    Ext.each(selectedStudents.records, function (record) {
+      var appraiseId = record.get('id');
+
+      if (appraiseId) {
+        appraised = true;
+      } else {
+        unAppraise = true;
+      }
+
+      if (appraised) {
+        addBtn.setDisabled(true);
+        editBtn.setDisabled(false);
+        rmBtn.setDisabled(false);
+      }
+
+      if (unAppraise) {
+        addBtn.setDisabled(false);
+        editBtn.setDisabled(true);
+        rmBtn.setDisabled(true);
+      }
+
+      if (appraised && unAppraise) {
+        addBtn.setDisabled(true);
+        editBtn.setDisabled(true);
+        rmBtn.setDisabled(true);
+      }
+    });
+  },
+
+
+  //================= </util> ==========================
+});

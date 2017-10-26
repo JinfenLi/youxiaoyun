@@ -1,0 +1,54 @@
+package com.topview;
+
+import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.junit.Test;
+
+import com.topview.school.util.JSONUtil;
+import com.topview.school.util.SpringSourceUtil;
+import com.topview.school.util.ThumbnailUtil;
+
+public class GetXmlTest {
+
+	@Test
+	public void test_01(){
+		System.out.println("----------测试读取springXML配置文件---------");
+		SpringSourceUtil.getSourcePath("classpath*:spring-*.xml");
+	}
+	
+	@Test
+	public void test_02(){
+		System.out.println("----------测试读取springXML配置文件---------");
+		SpringSourceUtil.getSourcePath("classpath*:multimedia-0.0.1-SNAPSHOT.jar*/spring-multimedia-album.xml");
+	}
+	
+	@Test
+	public void test_03(){
+		System.out.println("----------测试读取springMapperXML配置文件---------");
+		SpringSourceUtil.getSourcePath("classpath*:/**/*Mapper.xml");
+	}
+	
+	//用于做缩略图压缩测试
+	@Test
+	public void test_04(){
+		File imageFile = new File("D:/003.jpg");
+		ThumbnailUtil.squareThumbnailGenerate(imageFile, 200);
+	}
+	
+	@Test
+	public void test_05(){
+		Map <String, Object> map = new HashMap<String, Object>();
+		map.put("studentId", "111");
+		map.put("examId", "222");
+		Map <String, Object> map2 = new HashMap<String, Object>();
+		System.out.println(JSONUtil.toObject(map).toString());
+		map2.put("content", JSONUtil.toObject(map).toString());
+		System.out.println(JSONUtil.toObject(map2).toString());
+	}
+	
+	
+	
+	
+}

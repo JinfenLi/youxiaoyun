@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.topview.school.dao.ClazzMapper">
+
+	<resultMap id="BaseResultMap" type="com.topview.school.po.Clazz">
+		<id column="id" jdbcType="CHAR" property="id" />
+		<result column="t_sc_grade_id" jdbcType="CHAR" property="tScGradeId" />
+		<result column="name" jdbcType="VARCHAR" property="name" />
+		<result column="sort_name" jdbcType="VARCHAR" property="sortName" />
+		<result column="comment" jdbcType="VARCHAR" property="comment" />
+		<result column="info" jdbcType="VARCHAR" property="info" />
+		<result column="quality" jdbcType="INTEGER" property="quality" />
+	</resultMap>
+	<sql id="Base_Column_List"> id, t_sc_grade_id, name, sort_name, comment, info, quality
+	</sql>
+
+	<select id="findByTeacherId" parameterType="java.lang.String"
+		resultMap="BaseResultMap">
+		select DISTINCT c.*
+		from t_sc_class c,
+		t_sc_curricula_variable cv,
+		t_sc_teacher t
+		where t.id =
+		#{teacher_id,jdbcType=CHAR}
+		and cv.t_sc_teacher_id = t.id
+		and
+		cv.t_sc_class_id = c.id
+	</select>
+
+	<select id="findByStudentId" parameterType="java.lang.String"
+		resultMap="BaseResultMap">
+		select c.*
+		from t_sc_class c, t_sc_student st
+		where st.id =
+		#{student_id,jdbcType=CHAR}
+		and st.t_sc_class_id = c.id
+	</select>
+
+	<select id="selectByPrimaryKey" parameterType="java.lang.String"
+		resultMap="BaseResultMap">
+		select
+		<include refid="Base_Column_List" />
+		from t_sc_class
+		where id = #{id,jdbcType=CHAR}
+	</select>
+	<delete id="deleteByPrimaryKey" parameterType="java.lang.String"> delete from
+		t_sc_class where id = #{id,jdbcType=CHAR}
+	</delete>
+	<insert id="insert" parameterType="com.topview.school.po.Clazz"> insert into t_sc_class (id,
+		t_sc_grade_id, name, sort_name, comment, info, quality) values
+		(#{id,jdbcType=CHAR}, #{tScGradeId,jdbcType=CHAR},
+		#{name,jdbcType=VARCHAR}, #{sortName,jdbcType=VARCHAR},
+		#{comment,jdbcType=VARCHAR}, #{info,jdbcType=VARCHAR},
+		#{quality,jdbcType=INTEGER})
+	</insert>
+	<insert id="insertSelective" parameterType="com.topview.school.po.Clazz">
+		insert into t_sc_class
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				id,
+			</if>
+			<if test="tScGradeId != null">
+				t_sc_grade_id,
+			</if>
+			<if test="name != null">
+				name,
+			</if>
+			<if test="sortName != null">
+				sort_name,
+			</if>
+			<if test="comment != null">
+				comment,
+			</if>
+			<if test="info != null">
+				info,
+			</if>
+			<if test="quality != null">
+				quality,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				#{id,jdbcType=CHAR},
+			</if>
+			<if test="tScGradeId != null">
+				#{tScGradeId,jdbcType=CHAR},
+			</if>
+			<if test="name != null">
+				#{name,jdbcType=VARCHAR},
+			</if>
+			<if test="sortName != null">
+				#{sortName,jdbcType=VARCHAR},
+			</if>
+			<if test="comment != null">
+				#{comment,jdbcType=VARCHAR},
+			</if>
+			<if test="info != null">
+				#{info,jdbcType=VARCHAR},
+			</if>
+			<if test="quality != null">
+				#{quality,jdbcType=INTEGER},
+			</if>
+		</trim>
+	</insert>
+	<update id="updateByPrimaryKeySelective" parameterType="com.topview.school.po.Clazz">
+		update t_sc_class
+		<set>
+			<if test="tScGradeId != null and tScGradeId != ''">
+				t_sc_grade_id = #{tScGradeId,jdbcType=CHAR},
+			</if>
+			<if test="name != null and name != ''">
+				name = #{name,jdbcType=VARCHAR},
+			</if>
+			<if test="sortName != null and sortName != ''">
+				sort_name = #{sortName,jdbcType=VARCHAR},
+			</if>
+			<if test="comment != null and comment != ''">
+				comment = #{comment,jdbcType=VARCHAR},
+			</if>
+			<if test="info != null and info != ''">
+				info = #{info,jdbcType=VARCHAR},
+			</if>
+			<if test="quality != null and quality != ''">
+				quality = #{quality,jdbcType=INTEGER},
+			</if>
+		</set>
+		where id = #{id,jdbcType=CHAR}
+	</update>
+	<update id="updateByPrimaryKey" parameterType="com.topview.school.po.Clazz"> update t_sc_class
+		set t_sc_grade_id = #{tScGradeId,jdbcType=CHAR}, name =
+		#{name,jdbcType=VARCHAR}, sort_name = #{sortName,jdbcType=VARCHAR},
+		comment = #{comment,jdbcType=VARCHAR}, info =
+		#{info,jdbcType=VARCHAR}, quality = #{quality,jdbcType=INTEGER} where
+		id = #{id,jdbcType=CHAR}
+	</update>
+
+
+	<select id="selectAll" resultType="com.topview.school.po.Clazz">
+		select * from t_sc_class
+	</select>
+
+	<select id="findSchoolIdByStudentId" resultType="java.lang.String">
+		<if test="_parameter != null">
+			select t_sc_school_id from t_sc_grade where id=(select
+			t_sc_grade_id from t_sc_class where id=(select t_sc_class_id from
+			t_sc_student where id = #{_parameter}))
+		</if>
+	</select>
+
+	<select id="selectLike" resultType="com.topview.school.po.Clazz"
+		parameterType="string">
+
+	</select>
+
+	<select id="findCurricula" parameterType="java.lang.String"
+		resultMap="curriculaInfo">
+		SELECT sub.name, t.week, t.section from t_sc_curricula_time
+		t, t_sc_subject
+		sub, t_sc_curricula c,
+		t_sc_curricula_variable v where
+		v.t_sc_semester_id=#{semesterId}
+		and v.t_sc_class_id = #{id} and
+		sub.id = c.t_sc_subject_id and v.t_sc_curricula_id=c.id
+		and
+		t.t_sc_curricula_variable_id = v.id
+	</select>
+	<resultMap type="com.topview.school.vo.curricula.ClassCurriculaInfo"
+		id="curriculaInfo">
+		<result property="name" column="t_sc.subject.name" />
+		<result property="week" column="week" />
+		<result property="section" column="section" />
+	</resultMap>
+
+	<!-- 根据年级id获取班级  -->
+	<select id="getClazzByGradeId" parameterType="java.lang.String"
+		resultMap="BaseResultMap">
+		select
+		<include refid="Base_Column_List" />
+		from t_sc_class
+		where t_sc_grade_id = #{gradeId,jdbcType=VARCHAR} ORDER BY LENGTH(name) ASC, name ASC
+	</select>
+
+	<!-- 查询教师指定学期所带的所有班级 -->
+	<select id="selectTeacherClazzs" parameterType="java.util.Map"
+		resultMap="BaseResultMap">
+		select
+			c.*
+		from
+			t_sc_class c, t_sc_curricula_variable cv
+		where
+			cv.t_sc_teacher_id = #{teacherId}
+		and
+			cv.t_sc_semester_id = #{semesterId}
+		and 
+			cv.t_sc_class_id = c.id ORDER
+		 BY LENGTH(c.name) ASC, c.name ASC
+	</select>
+
+
+</mapper>

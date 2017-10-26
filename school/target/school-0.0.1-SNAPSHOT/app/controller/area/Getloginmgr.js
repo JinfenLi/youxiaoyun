@@ -1,0 +1,220 @@
+/**
+ * 
+ * Author: ccDeng
+ * Contact: 173634610@qq.com
+ * Description: 超级管理员查看所有学校的登陆情况的控制器
+ * 
+ */
+Ext.define("School.controller.area.Getloginmgr", {
+	extend: "Ext.app.Controller",
+	views: [
+		"area.Getloginmgr",
+		 "area.SchoolLogin",
+		 "area.TeacherLastLogin"
+	],
+
+	init: function(application) {
+
+		"use strict"; //启用严格模式
+
+		this.control({
+			
+			'getloginmgr': {
+				afterrender: function(component) {
+					this.onRender(component);
+				}
+			},
+
+			"combo#province": {
+
+				render: this.onProvinceRender,
+
+				change: this.onProvinceChange
+			},
+
+			//地级市下拉框的触发事件
+			"combo#city": {
+				change: this.onCityChange
+			},
+
+			//县查询
+			"combo#town": {
+				change: this.onTownChange
+			},
+               //学校老师最后登录情况
+            "getloginmgr actioncolumn#teacherLastLogin":{
+               itemclick:this.teacherLastLogin
+            },
+			//查看某个学校的登陆情况
+			"getloginmgr actioncolumn#readLogin": {
+				itemclick: this.readLogin
+			},
+
+		});
+	
+	},
+
+	//渲染页面后请求总人数
+	onRender: function(component) {
+   	Ext.Ajax.request({
+	    url: 'user/getLoginCount.action',
+	    success: function(response){
+	      var text = JSON.parse(response.responseText);
+	      component.down('toolbar').down('label#schoolCountOfTeacher').setText('学校教师总数：' + text.schoolCountOfTeacher);  
+	    	component.down('toolbar').down('label#NotLoginCountOfTeacher').setText('未登陆教师数：' + text.NotLoginCountOfTeacher);  
+	    	component.down('toolbar').down('label#schoolCountOfParent').setText('学校家长总数：' + text.schoolCountOfParent);  
+	    	component.down('toolbar').down('label#NotLoginCountOfParent').setText('未登陆家长数：' + text.NotLoginCountOfParent);  
+	    	component.down('toolbar').down('label#loginCountOfParent').setText('已登陆家长数：' + text.loginCountOfParent);  
+	    	component.down('toolbar').down('label#loginCountOfTeacher').setText('已登陆教师数：' + text.loginCountOfTeacher);  
+	    }
+		});		
+	},
+
+	//省份下拉框渲染时的出发函数
+	onProvinceRender: function(component) {
+
+		"use strict";
+
+		var store = component.getStore(),
+			url = "area/findArea.action", 
+			root = "areas",
+			params = {
+				parentId: "0",
+				leave: "1"
+			};
+
+		//重新设置数据代理
+		store.setProxy(School.util.Util.setProxy(url, params , root));
+
+		store.reload({
+			callback: function() {
+				var defaultVal = store.getAt(0).get("id");
+				component.setValue(defaultVal);
+			}
+		});
+	},
+
+
+	//切换省份时的触发函数
+	onProvinceChange: function(me, newValue, oldValue, eOpts) {
+
+		"use strict"; //启用严格模式
+
+		//查询该省份的所有学校
+		me.up("grid").getStore().reload({
+			params: {
+				id: newValue,
+				leave: 1
+			}
+		});
+
+		//设置地级市的数据代理
+		var store =	me.up("toolbar").down("combo#city").getStore(),
+			url = "area/findArea.action", //请求地址
+			root = "areas",	//json数据的根节点
+			params = {
+				parentId: newValue,
+				leave: "2"
+			};
+
+		store.setProxy(School.util.Util.setProxy(url, params , root));
+		store.reload();
+
+
+	},
+
+	//切换城市时的触发函数
+	onCityChange: function(me, newValue, oldValue, eOpts) {
+
+		"use strict"; //启用严格模式
+
+		this.emptySelectedSchools(me);
+
+		//查询该县的学校
+		me.up("grid").getStore().reload({
+			params: {
+				id: newValue,
+				leave: 2
+			}
+		});
+
+		//设置县级市的数据代理
+		var store =	me.up("toolbar").down("combo#town").getStore(),
+			url = "area/findArea.action", //请求地址
+			root = "areas",	//json数据的根节点
+			params = {
+				parentId: newValue,
+				leave: "3"
+			}
+
+		store.setProxy(School.util.Util.setProxy(url, params , root));
+		store.reload();
+	},
+
+	//切换县级市时的触发事件函数
+	onTownChange: function(me, newValue, oldValue, eOpts) {	
+
+		"use strict"; //启用严格模式
+		
+		this.emptySelectedSchools(me);
+
+		me.up("grid").getStore().reload({
+			params: {
+				id: newValue,
+				leave: 3
+			}
+		});
+	},
+    //查看学校老师最后登录情况
+     teacherLastLogin:function(grid,rowIndex,colIndex){
+     	var schoolId = grid.getStore().getAt(rowIndex).get("id"),
+     	     mainPanel = Ext.ComponentQuery.query("mainpanel")[0],
+     	     title="学校老师最后登录信息",
+     	     xtype="teacherlastlogin";
+        var actTab = School.util.AddTab.addTab(mainPanel,title,xtype,"","teacherlastlogin",{schoolId: schoolId});
+        var store = actTab.getStore();
+        store.load({
+        	params:{
+        		schoolId:schoolId
+        	}
+        });
+
+     },
+	//查看学校登陆情况
+	readLogin: function(grid, rowIndex, colIndex) {
+
+		"use strict"; //启用严格模式
+
+		//获取学校id
+		var schoolId = grid.getStore().getAt(rowIndex).get("id"),
+			mainPanel = Ext.ComponentQuery.query("mainpanel")[0],
+			activeTab = mainPanel.getActiveTab(),
+			title = "学校登陆情况",
+	    xtype = "schoollogin",
+	    school = {};
+
+    	var school = School.util.AddTab.addTab(mainPanel, title, xtype, "", "schoolslogin");
+     	school.schoolId = schoolId;
+     	Ext.Ajax.request({
+		    url: 'user/getLoginCount.action',
+		    params: {
+		        schoolId: schoolId
+		    },
+		    success: function(response){
+		      var text = JSON.parse(response.responseText);
+		      school.down('toolbar').down('label#schoolCountOfTeacher').setText('学校教师总数：' + text.schoolCountOfTeacher);  
+		    	school.down('toolbar').down('label#NotLoginCountOfTeacher').setText('未登陆教师数：' + text.NotLoginCountOfTeacher);  
+		    	school.down('toolbar').down('label#schoolCountOfParent').setText('学校家长总数：' + text.schoolCountOfParent);  
+		    	school.down('toolbar').down('label#NotLoginCountOfParent').setText('未登陆家长数：' + text.NotLoginCountOfParent);  
+		    	school.down('toolbar').down('label#loginCountOfParent').setText('已登陆家长数：' + text.loginCountOfParent);  
+	    		school.down('toolbar').down('label#loginCountOfTeacher').setText('已登陆教师数：' + text.loginCountOfTeacher);  
+		    }
+			});
+	  
+	    school.down('toolbar').down('combobox').getStore().proxy.extraParams = {
+	    	schoolId: schoolId
+	    }
+	    school.down('toolbar').down('combobox').getStore().load();
+	    school.down('toolbar').down('combobox').setValue(''); 
+	},
+});

@@ -1,0 +1,93 @@
+//"id", "name", "function", "principal", "telephone","phone"
+{
+	"items": [
+		{
+			"id": "1",
+			"name": "总务处",
+			"function": "管理杂务",
+			"principal": "李光",
+			"telephone": "12345678910",
+			"phone": "1234567"
+		},
+		{
+			"id": "2",
+			"name": "财务处",
+			"function": "管理财务",
+			"principal": "赵达标",
+			"telephone": "12345678910",
+			"phone": "1234567"
+		},
+		{
+			"id": "3",
+			"name": "行政处",
+			"function": "管理学校纪律",
+			"principal": "司马懿",
+			"telephone": "12345678910",
+			"phone": "1234567"
+		},
+		{
+			"id": "4",
+			"name": "教导处",
+			"function": "管理学习",
+			"principal": "合成波",
+			"telephone": "12345678910",
+			"phone": "1234567"
+		},
+		{
+			"id": "5",
+			"name": "人事处处",
+			"function": "管理衣食住行",
+			"principal": "和瑞能",
+			"telephone": "12345678910",
+			"phone": "1234567"
+		},
+		{
+			"id": "6",
+			"name": "后勤部",
+			"function": "管理饭堂",
+			"principal": "高贺",
+			"telephone": "12345678910",
+			"phone": "1234567"
+		},
+		{
+			"id": "7",
+			"name": "保卫部",
+			"function": "保障学校安全",
+			"principal": "防滑条",
+			"telephone": "12345678910",
+			"phone": "1234567"
+		},
+		{
+			"id": "8",
+			"name": "语文科组",
+			"function": "教务",
+			"principal": "老油条",
+			"telephone": "12345678910",
+			"phone": "1234567"
+		},
+		{
+			"id": "9",
+			"name": "英语科组",
+			"function": "教务",
+			"principal": "防滑条",
+			"telephone": "12345678910",
+			"phone": "1234567"
+		},
+		{
+			"id": "19",
+			"name": "数学科组",
+			"function": "教务",
+			"principal": "王二小",
+			"telephone": "12345678910",
+			"phone": "1234567"
+		},
+		{
+			"id": "29",
+			"name": "物理科组",
+			"function": "教务",
+			"principal": "防滑条",
+			"telephone": "12345678910",
+			"phone": "1234567"
+		}
+	]
+}

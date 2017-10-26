@@ -1,0 +1,32 @@
+/**
+ * 
+ * Author: ccDeng
+ * Contact: 173634610@qq.com
+ * Description: 超级管理员查看管理的该学校班级的登陆情况的store
+ * 
+ */
+Ext.define("School.store.area.ClassLogin", {
+	extend: "Ext.data.Store",
+	requires: [
+		"School.model.area.ClassLogin"
+	],
+	model: "School.model.area.ClassLogin",
+
+	proxy: {
+		type: "postproxy",
+		url: zyHost + 'user/getUserLoginInfo.action',
+		reader: {
+			type: 'json',
+			totalProperty: 'totalCount', 
+			root: 'loginInfoResult'
+		}
+	},
+	// listeners: {
+	// 	beforeload: {
+	// 		fn: function(store) {
+	// 			// store.setProxy(School.util.Util.setProxy('grade/getAllGrade.action', params , 'grades', 100 ));
+	// 		}
+	// 	}
+	// },
+	autoload: false
+});

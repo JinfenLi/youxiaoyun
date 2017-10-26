@@ -1,0 +1,4 @@
+请求参数发送url方法 video_src 视频路径 poster_src 图片路径
+/?video_src=xxx.mp4&poster_src=xxx.jpg
+
+自适应屏幕全屏

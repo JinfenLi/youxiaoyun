@@ -1,0 +1,145 @@
+/*app.css*/
+
+@import "./photos.css";
+@import "./departMgr.css";
+@import "./tips.css";
+/*@import "./bootstrap.min.css";*/
+
+/*body{
+	background: url(../images/body.jpg) repeat-y;
+	background-size : cover;
+}
+*/
+
+/*loading img*/
+.x-mask.splashscreen {
+	width: 100px;
+	opacity: 1;
+}
+
+.x-mask-msg.splashscreen,.x-mask-msg.splashscreen div {
+	font-size: 16px;
+	font-weight: bold;
+	padding: 30px 5px 5px 5px;
+	border: none;
+	width: 100px;
+	background-color: transparent;/*设置透明背景*/
+	background-position: top center;
+}
+.x-message-box .x-window-body .x-box-inner {
+	min-height: 110px !important;
+}
+.x-spalsh-icon {
+	background: url("../images/startIcon.png") no-repeat !important;
+	margin-top: -30px;
+	margin-bottom: 15px;
+	height: 100px;
+}
+.key{
+	 background-image:url('../icons/key.png') !important;
+}
+.capslock{
+	background: url("../icons/error.png") no-repeat center left !important;
+	padding: 2px;
+	padding-left: 20px;
+	font-weight: 700;
+}
+
+.cancel {
+	background-image: url("../icons/cancel.png") !important;
+}
+.accept {
+	background-image: url("../icons/accept.png") !important;
+}
+.key_go {
+	background-image: url("../icons/search.png") !important;
+}
+.copy {
+	background-image: url("../icons/disk_multiple.png") !important;
+}
+
+/*菜单栏的图标*/
+
+.home {
+  background-image:url('../icons/house.png') !important;
+}
+
+.menu_admin {
+  background-image:url('../icons/folder_user.png') !important;
+}
+
+.menu_groups {
+  background-image:url('../icons/group_key.png') !important;
+}
+
+.menu_profile {
+  background-image:url('../icons/user_edit.png') !important;
+}
+
+.menu_users {
+  background-image:url('../icons/group_edit.png') !important;
+}
+
+.menu_area {
+	 background-image:url('../images/icon_area.png') !important;
+}
+
+
+.save {
+  background-image:url('../icons/disk.png') !important;
+}
+
+.add {
+  background-image:url('../icons/add.png') !important;
+}
+
+.edit {
+  background-image:url('../icons/pencil.png') !important;
+}
+
+.delete {
+  background-image:url('../icons/delete.png') !important;
+}
+
+.logout {
+  background-image:url('../icons/door_in.png') !important;
+}
+
+.download {
+	  background-image:url('../icons/download.png') !important;
+}
+
+.upload {
+	 background-image:url('../icons/up.png') !important;
+}
+
+.play {
+	background-image:url('../icons/play.png') !important;
+}
+
+
+ /*app header*/
+.appheader {
+	background: rgb(0, 79, 106);
+}
+/*.appheader .logo {
+	background: url('../images/logo.png');
+	width: 100%;
+	height: 100%;
+}*/
+.appheader .title {
+	color: #fff;
+}
+.appheader .title h1 {
+	margin: 5px;
+}
+
+.appheader img.nav:hover {
+	background: #0F8494;
+	cursor: pointer;
+}
+
+
+.x-panel-body-default {
+	border: 1px  !important;
+}

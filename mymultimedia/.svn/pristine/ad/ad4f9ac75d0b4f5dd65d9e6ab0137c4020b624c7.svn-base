@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+		http://www.springframework.org/schema/beans/spring-beans-3.1.xsd 
+		http://www.springframework.org/schema/context 
+		http://www.springframework.org/schema/context/spring-context-3.1.xsd">
+
+	<bean id="articleServiceImpl"
+		class="com.topview.multimedia.service.section.article.ArticleServiceImpl">
+		<property name="articleDeleteProcesses">
+			<list>
+				<ref bean="articleDeleteProcess" />
+			</list>
+		</property>
+		<property name="articleUpdateProcesses">
+			<list>
+				<ref bean="articleLimitProcess" />
+				<ref bean="articleUpdateProcess" />
+			</list>
+		</property>
+		<property name="articleFindProcesses">
+			<list>
+				<ref bean="articleFindProcess" />
+			</list>
+		</property>
+		<property name="articleFindAllProcesses">
+			<list>
+				<ref bean="articleFindAllProcess" />
+			</list>
+		</property>
+		<property name="articleSendProcesses">
+			<list>
+				<ref bean="articleSaveProcess" />
+			</list>
+		</property>
+	</bean>
+
+</beans>

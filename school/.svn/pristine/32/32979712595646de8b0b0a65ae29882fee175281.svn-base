@@ -1,0 +1,77 @@
+{
+	//"id", "name", "gender", "depart",  "position", "course", "phone", "telephone",
+	"items": [
+		{
+			"id": "311300",
+			"name": "李四光",
+			"gender": "男",
+			"depart": "无",
+			"position": "班主任",
+			"course": "语文",
+			"telephone": "12345678910"
+		},
+		{
+			"id": "311301",
+			"name": "王强",
+			"gender": "男",
+			"depart": "总务处",
+			"position": "科长",
+			"course": "无",
+			"telephone": "12345678910"
+		},
+		{
+			"id": "311303",
+			"name": "陈静",
+			"gender": "女",
+			"depart": "财务处",
+			"position": "处长",
+			"course": "心理",
+			"telephone": "12345678910"
+		},
+		{
+			"id": "311305",
+			"name": "李娜",
+			"gender": "女",
+			"depart": "无",
+			"position": "无",
+			"course": "英语",
+			"telephone": "12345678910"
+		},
+		{
+			"id": "311309",
+			"name": "陈小春",
+			"gender": "男",
+			"depart": "行政处",
+			"position": "主任",
+			"course": "体育",
+			"telephone": "12345678910"
+		},
+		{
+			"id": "311308",
+			"name": "李阳",
+			"gender": "男",
+			"depart": "无",
+			"position": "班主任",
+			"course": "英语",
+			"telephone": "12345678910"
+		},
+		{
+			"id": "311307",
+			"name": "陈红光",
+			"gender": "男",
+			"depart": "人事处",
+			"position": "处长",
+			"course": "无",
+			"telephone": "12345678910"
+		},
+		{
+			"id": "311313",
+			"name": "祥林嫂",
+			"gender": "女",
+			"depart": "无",
+			"position": "后勤阿姨",
+			"course": "煮饭",
+			"telephone": "12345678910"
+		}
+	]
+}

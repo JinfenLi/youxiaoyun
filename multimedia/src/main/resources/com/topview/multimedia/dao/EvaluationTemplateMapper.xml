@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.topview.multimedia.dao.EvaluationTemplateMapper" >
+  <resultMap id="BaseResultMap" type="com.topview.multimedia.po.EvaluationTemplate" >
+    <id column="id" property="id" jdbcType="VARCHAR" />
+    <result column="name" property="name" jdbcType="VARCHAR" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="type" property="type" jdbcType="INTEGER" />
+    <result column="privacy" property="privacy" jdbcType="INTEGER" />
+    <result column="uploader_id" property="uploaderId" jdbcType="VARCHAR" />
+    <result column="score" property="score" jdbcType="INTEGER" />
+    <result column="url" property="url" jdbcType="VARCHAR" />
+    <result column="school_id" property="schoolId" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, name, create_time, type, privacy, uploader_id, score, url, school_id
+  </sql>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.String" >
+    select 
+    <include refid="Base_Column_List" />
+    from t_mutimedia_evaluation_template
+    where id = #{id,jdbcType=VARCHAR}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String" >
+    delete from t_mutimedia_evaluation_template
+    where id = #{id,jdbcType=VARCHAR}
+  </delete>
+  <insert id="insert" parameterType="com.topview.multimedia.po.EvaluationTemplate" >
+    insert into t_mutimedia_evaluation_template (id, name, create_time, 
+      type, privacy, uploader_id, 
+      score, url, school_id
+      )
+    values (#{id,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, 
+      #{type,jdbcType=INTEGER}, #{privacy,jdbcType=INTEGER}, #{uploaderId,jdbcType=VARCHAR}, 
+      #{score,jdbcType=INTEGER}, #{url,jdbcType=VARCHAR}, #{schoolId,jdbcType=VARCHAR}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="com.topview.multimedia.po.EvaluationTemplate" >
+    insert into t_mutimedia_evaluation_template
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="name != null" >
+        name,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+      <if test="type != null" >
+        type,
+      </if>
+      <if test="privacy != null" >
+        privacy,
+      </if>
+      <if test="uploaderId != null" >
+        uploader_id,
+      </if>
+      <if test="score != null" >
+        score,
+      </if>
+      <if test="url != null" >
+        url,
+      </if>
+      <if test="schoolId != null" >
+        school_id,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=VARCHAR},
+      </if>
+      <if test="name != null" >
+        #{name,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="type != null" >
+        #{type,jdbcType=INTEGER},
+      </if>
+      <if test="privacy != null" >
+        #{privacy,jdbcType=INTEGER},
+      </if>
+      <if test="uploaderId != null" >
+        #{uploaderId,jdbcType=VARCHAR},
+      </if>
+      <if test="score != null" >
+        #{score,jdbcType=INTEGER},
+      </if>
+      <if test="url != null" >
+        #{url,jdbcType=VARCHAR},
+      </if>
+      <if test="schoolId != null" >
+        #{schoolId,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.topview.multimedia.po.EvaluationTemplate" >
+    update t_mutimedia_evaluation_template
+    <set >
+      <if test="name != null" >
+        name = #{name,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="type != null" >
+        type = #{type,jdbcType=INTEGER},
+      </if>
+      <if test="privacy != null" >
+        privacy = #{privacy,jdbcType=INTEGER},
+      </if>
+      <if test="uploaderId != null" >
+        uploader_id = #{uploaderId,jdbcType=VARCHAR},
+      </if>
+      <if test="score != null" >
+        score = #{score,jdbcType=INTEGER},
+      </if>
+      <if test="url != null" >
+        url = #{url,jdbcType=VARCHAR},
+      </if>
+      <if test="schoolId != null" >
+        school_id = #{schoolId,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.topview.multimedia.po.EvaluationTemplate" >
+    update t_mutimedia_evaluation_template
+    set name = #{name,jdbcType=VARCHAR},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      type = #{type,jdbcType=INTEGER},
+      privacy = #{privacy,jdbcType=INTEGER},
+      uploader_id = #{uploaderId,jdbcType=VARCHAR},
+      score = #{score,jdbcType=INTEGER},
+      url = #{url,jdbcType=VARCHAR},
+      school_id = #{schoolId,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+   <sql id="page">
+    <if test="offset != null">
+      limit #{offset}
+    </if>
+    <if test="limit != null">
+      , #{limit}
+    </if>
+  </sql>  
+   <select id="findByMulti" resultMap="BaseResultMap">
+    select * from t_mutimedia_evaluation_template where 1 = 1
+      <if test="params != null">
+        <foreach item="item" index="key" collection="params.entrySet()">
+              and ${key} = #{item}</foreach> 
+      </if>
+       <if test="global != null">
+              or privacy = #{global}
+      </if>
+      <if test="type!=null">
+              and type in ('0' ,'1', '3')
+      </if>
+      <if test="array!=null">
+              and type in 
+               <foreach item="item" index="index" collection="array" 
+                         open="(" separator="," close=")">
+                        #{item}
+                </foreach>
+      </if>
+      order by create_time desc
+      <include refid="page" />
+  </select>
+  <select id="selectCount" resultType="java.lang.Integer">
+    select count(*) from t_mutimedia_evaluation_template where uploader_id = #{uploaderId}
+    and type = '1'
+  </select>
+</mapper>

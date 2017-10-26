@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+		http://www.springframework.org/schema/beans/spring-beans-3.1.xsd 
+		http://www.springframework.org/schema/context 
+		http://www.springframework.org/schema/context/spring-context-3.1.xsd">
+
+	<bean id="evaluationServiceImpl" class="com.topview.multimedia.service.evaluation.EvaluationServiceImpl">
+		<property name="evaluationSaveProcesses">
+			<list>
+				<ref bean="evaluationSaveProcess" />
+			</list>
+		</property>
+		<property name="evaluationDeleteProcesses">
+			<list>
+				<ref bean="evaluationDeleteProcess" />
+			</list>
+		</property>
+		<property name="evaluationTemplateSaveProcesses">
+			<list>
+				<ref bean="evaluationTemplateSaveProcess" />
+			</list>
+		</property>
+		<property name="templateJudgeOwnerProcesses">
+			<list>
+				<ref bean="templateJudgeOwnerProcess" />
+			</list>
+		</property>
+		<property name="templateUpdateProcesses">
+			<list>
+				<ref bean="templateUpdateProcess" />
+			</list>
+		</property>
+		<property name="templateAvailableProcesses">
+			<list>
+				<ref bean="templateAvailableProcess" />
+			</list>
+		</property>
+			<property name="templateCountByUserProcesses">
+			<list>
+				<ref bean="templateCountByUserProcess" />
+			</list>
+		</property>
+		<property name="templateFindByUnpassProcesses">
+			<list>
+				<ref bean="templateFindByUnpassProcess" />
+			</list>
+		</property>
+		<property name="templateFindByTypeProcesses">
+			<list>
+				<ref bean="templateFindByTypeProcess" />
+			</list>
+		</property>
+		<property name="templateRemoveProcesses">
+			<list>
+				<ref bean="templateRemoveProcess" />
+			</list>
+		</property>
+		<property name="groupSaveProcesses">
+			<list>
+				<ref bean="groupSaveProcess" />
+			</list>
+		</property>
+		<property name="groupUpdateProcesses">
+			<list>
+				<ref bean="groupUpdateProcess" />
+			</list>
+		</property>
+		<property name="groupFindAllProcesses">
+			<list>
+				<ref bean="groupFindAllProcess" />
+			</list>
+		</property>
+		<property name="evaluationFindByStudentProcesses">
+			<list>
+				<ref bean="evaluationFindByStudentProcess" />
+			</list>
+		</property>
+		<property name="studentFindByGroupIdProcesses">
+			<list>
+				<ref bean="studentFindByGroupIdProcess" />
+			</list>
+		</property>
+		<property name="templateDeleteByTeacherProcesses">
+			<list>
+				<ref bean="templateDeleteByTeacherProcess" />
+			</list>
+		</property>
+		<property name="templateFindByIdProcesses">
+			<list>
+				<ref bean="templateFindByIdProcess" />
+			</list>
+		</property>
+		
+		<property name="groupDeleteProcesses">
+			<list>
+				<ref bean="groupDeleteProcess" />
+			</list>
+		</property>
+	</bean>
+
+</beans>

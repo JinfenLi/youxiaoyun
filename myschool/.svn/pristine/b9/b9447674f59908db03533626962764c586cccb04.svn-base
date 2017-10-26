@@ -1,0 +1,360 @@
+package com.topview.school.controller.user;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.multipart.MultipartFile;
+
+import com.topview.school.po.Teacher;
+import com.topview.school.service.system.authc.RoleType;
+import com.topview.school.service.system.authc.UserRoleService;
+import com.topview.school.service.user.teacher.TeacherService;
+import com.topview.school.util.DownloadAndUploadUtil;
+import com.topview.school.util.FileUploadUtil;
+import com.topview.school.util.JSONUtil;
+import com.topview.school.vo.FileUploadVo;
+import com.topview.school.vo.User.TeacherVo;
+import com.topview.school.vo.User.UserInfo;
+
+@Controller
+@RequestMapping(value = "/teacher", produces = "text/html;charset=UTF-8")
+public class TeacherController {
+
+	@Resource
+	private TeacherService teacherService;
+	private String[] filter = { "password" };
+	@Autowired
+	private UserRoleService roleService;
+
+	/**
+	 * 根据学校id获取全部教师\根据年级id获取级长\根据班级id获取班主任
+	 * 
+	 * @param session
+	 * @param schoolId
+	 * @return
+	 */
+	@RequestMapping("/getAllTeacher")
+	@ResponseBody
+	public String getAllTeacher(HttpSession session, String schoolId,
+			String gradeId, String clazzId, Integer start, Integer limit) {
+		Map<String, Object> resultMap = new HashMap<String, Object>();
+		int totalCount = 0;
+		if (start != null && limit != null && !"".equals(start)
+				&& !"".equals(limit)) {
+			resultMap.put("offset", start);
+			resultMap.put("limit", limit);
+		}
+		if (schoolId != null && !"".equals(schoolId)) {
+			resultMap.put("schoolId", schoolId);
+			totalCount = teacherService.selectCount(schoolId);
+		} else if (gradeId != null && !"".equals(gradeId)) {
+			resultMap.put("gradeId", gradeId);
+		} else if (clazzId != null && !"".equals(clazzId)) {
+			resultMap.put("clazzId", clazzId);
+		} else {
+			resultMap.put("success", false);
+			return JSONUtil.toObject(resultMap).toString();
+		}
+		List<Teacher> t = teacherService.getTeacher(resultMap);
+		resultMap.clear();
+
+		if (t.size() > 0) {
+			resultMap.put("success", true);
+
+			List<TeacherVo> ts = TeacherVo.changeToVo(t);
+			for (TeacherVo v : ts) {
+
+				if (v != null
+						&& roleService.hasRole(v.getId(),
+								RoleType.SCHOOL_MANAGER.value())) {
+
+					v.setIsAuthc("1");
+				} else {
+					v.setIsAuthc("0");
+				}
+			}
+			resultMap.put("teachers", ts);
+			if (totalCount > 0) {
+				resultMap.put("totalCount", totalCount);
+			}
+		} else {
+			resultMap.put("success", false);
+		}
+
+		return JSONUtil.toObject(resultMap, filter).toString();
+	}
+
+	/**
+	 * 根据部门id或学科id获取老师
+	 * 
+	 * @param departmentId
+	 * @return
+	 */
+	@RequestMapping("/selectTeacherByDepartmentId")
+	@ResponseBody
+	public String selectTeacherByDepartmentId(String departmentId) {
+		Map<String, Object> resultMap = new HashMap<String, Object>();
+		List<Teacher> teachers = teacherService
+				.selectTeacherByDepartmentId(departmentId);
+		if (teachers.size() > 0) {
+			List<TeacherVo> infos = TeacherVo.changeToVo(teachers);
+			resultMap.put("success", true);
+			resultMap.put("teachers", infos);
+		} else {
+			resultMap.put("success", false);
+		}
+		return JSONUtil.toObject(resultMap, filter).toString();
+	}
+
+	/**
+	 * 更新教师信息
+	 * 
+	 * @param teacherInfo
+	 * @return
+	 */
+	@RequestMapping("/updateTeacher")
+	@ResponseBody
+	public String updateTeacher(TeacherVo teacherInfo) {
+		Map<String, Object> resultMap = new HashMap<String, Object>();
+		Teacher teacher = TeacherVo.changeToPo(teacherInfo);
+		boolean flag = teacherService.updateTeacherInfo(teacher);
+		resultMap.put("success", flag);
+		if (!flag) {
+			resultMap.put("msg", "请检查数据是否正确，联系方式有无错误");
+		}
+		return JSONUtil.toObject(resultMap).toString();
+	}
+
+	/**
+	 * 任命老师作为班主任或年级级长
+	 * 
+	 * @param session
+	 * @param clazzId
+	 * @param gradeId
+	 * @return
+	 */
+	@RequestMapping("/appointTeacher")
+	@ResponseBody
+	public String appointTeacher(HttpSession session, String teacherId,
+			String clazzId, String gradeId) {
+		Map<String, Object> resultMap = new HashMap<String, Object>();
+		Teacher teacher = new Teacher();
+		teacher.setId(teacherId);
+
+		if (clazzId != null && !"".equals(clazzId)) {
+			teacher.settScClassId(clazzId);
+		} else if (gradeId != null && !"".equals(gradeId)) {
+			teacher.settScGradeId(gradeId);
+		} else {
+			resultMap.put("success", false);
+			return JSONUtil.toObject(resultMap).toString();
+		}
+		resultMap.put("success", teacherService.updateTeacherInfo(teacher));
+		return JSONUtil.toObject(resultMap, filter).toString();
+	}
+
+	/**
+	 * 导出教师模板
+	 * 
+	 * @param @param request
+	 * @param @param respone
+	 * @param @return
+	 * @param @throws Exception
+	 * @return ResponseEntity<byte[]>
+	 * @throws
+	 */
+	@RequestMapping(value = "/downloadTeacherInfo", method = RequestMethod.POST)
+	public ResponseEntity<byte[]> downloadCurricula(HttpServletRequest request,
+			HttpServletResponse respone) throws Exception {
+
+		String root = request.getSession().getServletContext()
+				.getRealPath("/upload");
+		File folder = new File(root);
+		if (!folder.exists()) {
+			folder.mkdirs();
+		}
+		String fileName = "教师信息表";
+		String path = root + "\\" + fileName + ".xls";
+
+		File file = new File(path);
+		if (!file.exists()) { // 若模板文件不存在则创建
+			teacherService.createNullExcel(path);
+		}
+
+		return DownloadAndUploadUtil.download(request, file, fileName);
+	}
+
+	/**
+	 * 上传教师信息表Excel
+	 * 
+	 * @throws IOException
+	 * @throws IllegalStateException
+	 */
+	@RequestMapping(value = "/uploadTeacherInfo", method = RequestMethod.POST)
+	@ResponseBody
+	public String uploadCurricula(@RequestParam("file") MultipartFile file,
+			HttpServletRequest request, HttpSession session, String schoolId)
+			throws IllegalStateException, IOException {
+		Map<String, Object> resultMap = new HashMap<String, Object>();
+		UserInfo userInfo = (UserInfo) session.getAttribute("currentUser");
+		
+		FileUploadVo vo = FileUploadUtil.uploadFile(file, userInfo.getSchool_id() + "/teacherInfo",
+				request, true);
+
+		if (schoolId != null && !"".equals(schoolId)) {
+			userInfo.setSchool_id(schoolId);
+		}
+		try {
+			if (teacherService.uploadTeacherInfo(vo.getFileName(),
+					vo.getRealPath(), userInfo)) {
+				resultMap.put("success", true);
+			} else {
+				resultMap.put("success", false);
+			}
+		} catch (Exception e) {
+			resultMap.put("success", false);
+		}
+		return JSONUtil.toObject(resultMap).toString();
+	}
+
+	/**
+	 * 添加教师职位
+	 * 
+	 * @param positionId
+	 * @param teacherId
+	 * @return
+	 */
+	@RequestMapping(value = "/addPosition", method = RequestMethod.POST)
+	@ResponseBody
+	public String addPosition(String positionId, String teacherId) {
+		Map<String, Object> result = new HashMap<String, Object>();
+		if (positionId == null || "".equals(positionId)) {
+			result.put("result", false);
+			return JSONUtil.toObject(result).toString();
+		}
+		if (teacherId == null || "".equals(teacherId)) {
+			result.put("result", false);
+			return JSONUtil.toObject(result).toString();
+		}
+		result.put("result", teacherService.addPosition(positionId, teacherId));
+		return JSONUtil.toObject(result).toString();
+	}
+
+	/**
+	 * 删除教师职位
+	 * 
+	 * @param positionId
+	 * @param teacherId
+	 * @return
+	 */
+	@RequestMapping(value = "/deletePosition")
+	@ResponseBody
+	public String deletePosition(String positionId, String teacherId) {
+		Map<String, Object> result = new HashMap<String, Object>();
+		if (positionId == null || "".equals(positionId)) {
+			result.put("result", false);
+			return JSONUtil.toObject(result).toString();
+		}
+		if (teacherId == null || "".equals(teacherId)) {
+			result.put("result", false);
+			return JSONUtil.toObject(result).toString();
+		}
+		result.put("result",
+				teacherService.deletePosition(positionId, teacherId));
+		return JSONUtil.toObject(result).toString();
+	}
+
+	/**
+	 * 根据职位id获取教师
+	 * 
+	 * @param positionId
+	 * @param start
+	 * @param limit
+	 * @return
+	 */
+	@RequestMapping("getTeacherByPositionId")
+	@ResponseBody
+	public String getTeacherByPositionId(String positionId, Integer start,
+			Integer limit) {
+		Map<String, Object> resultMap = new HashMap<String, Object>();
+		List<Teacher> teachers = teacherService.selectTeacherByPositionId(
+				positionId, start, limit);
+		resultMap.put("success", true);
+		resultMap.put("teachers", TeacherVo.changeToVo(teachers));
+		resultMap.put("totalCount",
+				teacherService.getCountByPositionId(positionId));
+		return JSONUtil.toObject(resultMap).toString();
+	}
+
+	/**
+	 * 删除教师
+	 * 
+	 * @param teacherId
+	 * @return
+	 */
+	@RequestMapping("delete")
+	@ResponseBody
+	public String deleteTeacher(String teacherId) {
+		Map<String, Object> resultMap = new HashMap<String, Object>();
+		teacherService.delete(teacherId);
+		resultMap.put("success", true);
+		return JSONUtil.toObject(resultMap).toString();
+	}
+
+	/**
+	 * 根据名称模糊查询教师
+	 * 
+	 * @param name
+	 * @return
+	 */
+	@RequestMapping("findLike")
+	@ResponseBody
+	public String findLike(String name, HttpSession session) {
+		Map<String, Object> resultMap = new HashMap<String, Object>();
+		Map<String, Object> params = new HashMap<String, Object>();
+		Map<String, Object> param = new HashMap<String, Object>();
+		String[] filter = { "birthday", "createTime", "education", "password",
+				"tScClassId", "tScGradeId", "tScSchoolId" };
+		UserInfo userInfo = (UserInfo) session.getAttribute("currentUser");
+		if (userInfo == null) {
+			resultMap.put("success", false);
+			return JSONUtil.toObject(resultMap).toString();
+		}
+		params.put("name", name);
+		params.put("t_sc_school_id", userInfo.getSchool_id());
+		param.put("params", params);
+		List<TeacherVo> teacherVos = teacherService.findLike(param);
+		resultMap.put("success", true);
+		resultMap.put("teachers", teacherVos);
+		return JSONUtil.toObject(resultMap, filter).toString();
+	}
+
+	/**
+	 * 单独添加一个教师
+	 * 
+	 * @param vo
+	 * @return
+	 */
+	@RequestMapping("addTeacher")
+	@ResponseBody
+	public String addTeacher(TeacherVo vo) {
+		Map<String, Object> resultMap = new HashMap<String, Object>();
+		resultMap.put("success", teacherService.addTeacher(vo));
+		return JSONUtil.toObject(resultMap).toString();
+	}
+}

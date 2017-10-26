@@ -1,0 +1,270 @@
+package com.topview.multimedia.service.post;
+
+import java.util.List;
+
+import javax.servlet.http.HttpSession;
+
+import com.topview.multimedia.vo.PostVo;
+import com.topview.multimedia.vo.PraiseVo;
+import com.topview.multimedia.vo.ReplyVo;
+import com.topview.multimedia.vo.result.PostVoResult;
+import com.topview.multimedia.vo.result.PraiseVoResult;
+import com.topview.multimedia.vo.result.ReplyVoResult;
+
+public class PostServiceImpl implements PostService {
+
+	private List<PostProcess> savePostProcesses;
+	private List<PostProcess> savePostAccessoryProcess;
+	private List<PostProcess> saveReplyProcesses;
+	private List<PostProcess> savePraiseProcesses;
+	private List<PostProcess> seePostProcesses;
+	private List<PostProcess> seeReplyProcesses;
+	private List<PostProcess> seePraiseProcesses;
+	private List<PostProcess> deleteProcesses;
+	private List<PostProcess> judgePraiseProcesses;
+
+	/**
+	 * 保存新帖内容
+	 */
+	public PostVoResult savePost(PostVo vo) {
+
+		PostProcessContext context = new PostProcessContext();
+		context.setPostVo(vo);
+		context.setPostVoResult(new PostVoResult());
+
+		for (PostProcess process : savePostProcesses) {
+			if (!process.doProcess(context)) {
+				break;
+			}
+		}
+		return context.getPostVoResult();
+	}
+
+	/**
+	 * 保存评论
+	 */
+	public ReplyVoResult saveReply(ReplyVo vo) {
+
+		PostProcessContext context = new PostProcessContext();
+		context.setReplyVo(vo);
+		context.setReplyVoResult(new ReplyVoResult());
+
+		for (PostProcess process : saveReplyProcesses) {
+			if (!process.doProcess(context)) {
+				break;
+			}
+		}
+		return context.getReplyVoResult();
+	}
+
+	/**
+	 * 保存点赞
+	 */
+	public PraiseVoResult savePraise(PraiseVo vo) {
+
+		PostProcessContext context = new PostProcessContext();
+		context.setPraiseVo(vo);
+		context.setPraiseVoResult(new PraiseVoResult());
+
+		for (PostProcess process : savePraiseProcesses) {
+			if (!process.doProcess(context)) {
+				break;
+			}
+		}
+		return context.getPraiseVoResult();
+	}
+
+	/**
+	 * 根据班级id和时间点查询指定班级指定时间之后的帖子
+	 */
+	public PostVoResult seePostByTMid(HttpSession session, String classId, int status, String lastUpdate, String start, String limit) {
+		PostProcessContext context = new PostProcessContext();
+		PostVo vo = new PostVo();
+		vo.settMId(classId);
+		vo.setStatus(status);
+		vo.setCreateTime(lastUpdate);
+		context.setPostVo(vo);
+		context.setPostVoResult(new PostVoResult());
+		
+		context.setSession(session);
+
+		for (PostProcess process : seePostProcesses) {
+			if (!process.doProcess(context)) {
+				break;
+			}
+		}
+		return context.getPostVoResult();
+	}
+
+	/**
+	 * 查看评论
+	 */
+	public ReplyVoResult seeReplyByPostId(String postId, String lastUpdate) {
+
+		PostProcessContext context = new PostProcessContext();
+		ReplyVo vo = new ReplyVo();
+		vo.setPostId(postId);
+		vo.setReplyTime(lastUpdate);
+		context.setReplyVo(vo);
+		context.setReplyVoResult(new ReplyVoResult());
+
+		for (PostProcess process : seeReplyProcesses) {
+			if (!process.doProcess(context)) {
+				break;
+			}
+		}
+
+		return context.getReplyVoResult();
+	}
+
+	/**
+	 * 查看点赞
+	 */
+	public PraiseVoResult seePraiseByPostId(String postId, String lastUpdate) {
+
+		PostProcessContext context = new PostProcessContext();
+		PraiseVo vo = new PraiseVo();
+		vo.setPostId(postId);
+		vo.setPraiserTime(lastUpdate);
+		context.setPraiseVo(vo);
+		context.setPraiseVoResult(new PraiseVoResult());
+
+		for (PostProcess process : seePraiseProcesses) {
+			if (!process.doProcess(context)) {
+				break;
+			}
+		}
+		return context.getPraiseVoResult();
+	}
+
+	/**
+	 * 删除帖子或评论或取消点赞
+	 */
+	public PostVoResult delete(String id, int type) {
+
+		PostProcessContext context = new PostProcessContext();
+		switch (type) {
+		case 1:
+			PostVo postVo = new PostVo();
+			postVo.setId(id);
+			context.setPostVo(postVo);
+			break;
+		case 2:
+			ReplyVo replyVo = new ReplyVo();
+			replyVo.setId(id);
+			context.setReplyVo(replyVo);
+			break;
+		case 3:
+			PraiseVo praiseVo = new PraiseVo();
+			praiseVo.setId(id);
+			context.setPraiseVo(praiseVo);
+			break;
+		default:
+			return null;
+		}
+		context.setPostVoResult(new PostVoResult());
+
+		for (PostProcess process : deleteProcesses) {
+			if (!process.doProcess(context)) {
+				break;
+			}
+		}
+		return context.getPostVoResult();
+	}
+
+	/**
+	 * 根据用户id和帖子id查询点赞记录
+	 */
+	public PraiseVoResult judgePraise(String praiserId, String postId) {
+
+		PostProcessContext context = new PostProcessContext();
+		PraiseVo vo = new PraiseVo();
+		vo.setPostId(postId);
+		vo.setPraiserId(praiserId);
+		context.setPraiseVo(vo);
+		context.setPraiseVoResult(new PraiseVoResult());
+
+		for (PostProcess process : judgePraiseProcesses) {
+			if (!process.doProcess(context)) {
+				break;
+			}
+		}
+		return context.getPraiseVoResult();
+	}
+
+	// *******************************GET/SET******************************
+
+	public List<PostProcess> getSavePostProcesses() {
+		return savePostProcesses;
+	}
+
+	public void setSavePostProcesses(List<PostProcess> savePostProcesses) {
+		this.savePostProcesses = savePostProcesses;
+	}
+
+	public List<PostProcess> getSavePostAccessoryProcess() {
+		return savePostAccessoryProcess;
+	}
+
+	public void setSavePostAccessoryProcess(
+			List<PostProcess> savePostAccessoryProcess) {
+		this.savePostAccessoryProcess = savePostAccessoryProcess;
+	}
+
+	public List<PostProcess> getSaveReplyProcesses() {
+		return saveReplyProcesses;
+	}
+
+	public void setSaveReplyProcesses(List<PostProcess> saveReplyProcesses) {
+		this.saveReplyProcesses = saveReplyProcesses;
+	}
+
+	public List<PostProcess> getSavePraiseProcesses() {
+		return savePraiseProcesses;
+	}
+
+	public void setSavePraiseProcesses(List<PostProcess> savePraiseProcesses) {
+		this.savePraiseProcesses = savePraiseProcesses;
+	}
+
+	public List<PostProcess> getSeePostProcesses() {
+		return seePostProcesses;
+	}
+
+	public void setSeePostProcesses(List<PostProcess> seePostProcesses) {
+		this.seePostProcesses = seePostProcesses;
+	}
+
+	public List<PostProcess> getSeeReplyProcesses() {
+		return seeReplyProcesses;
+	}
+
+	public void setSeeReplyProcesses(List<PostProcess> seeReplyProcesses) {
+		this.seeReplyProcesses = seeReplyProcesses;
+	}
+
+	public List<PostProcess> getSeePraiseProcesses() {
+		return seePraiseProcesses;
+	}
+
+	public void setSeePraiseProcesses(List<PostProcess> seePraiseProcesses) {
+		this.seePraiseProcesses = seePraiseProcesses;
+	}
+
+	public List<PostProcess> getDeleteProcesses() {
+		return deleteProcesses;
+	}
+
+	public void setDeleteProcesses(List<PostProcess> deleteProcesses) {
+		this.deleteProcesses = deleteProcesses;
+	}
+
+	public List<PostProcess> getJudgePraiseProcesses() {
+		return judgePraiseProcesses;
+	}
+
+	public void setJudgePraiseProcesses(List<PostProcess> judgePraiseProcesses) {
+		this.judgePraiseProcesses = judgePraiseProcesses;
+	}
+
+}

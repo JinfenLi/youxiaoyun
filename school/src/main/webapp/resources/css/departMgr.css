@@ -1,0 +1,37 @@
+/*departMgr.css*/
+.teachers {
+	 font-family: "微软雅黑";
+}
+
+.teachers .staffs {
+	width:700px;
+	color: green;
+	border-bottom:1px dashed green;
+	float:left;
+}
+
+.teachers .others {
+	width:700px;
+	border-bottom: 1px dashed red;
+	float: left;
+	color: blue;
+}
+
+.teachers .title {
+	font-size: 14px;
+	text-align: center;
+	width: 100%;
+}
+
+.teachers .checkbox {
+	 width: 70px;
+	 float: left
+}
+
+.teachers .checkbox label {
+	cursor: pointer
+}
+
+
+
+

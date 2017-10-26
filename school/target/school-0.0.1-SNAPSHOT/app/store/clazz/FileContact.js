@@ -1,0 +1,19 @@
+/*
+*author：小玉
+*description:文件共享,右边的联系人
+**/
+Ext.define('School.store.clazz.FileContact',{
+	extend:'Ext.data.TreeStore',
+	requires:[
+      'School.model.clazz.FileContact'
+	],
+	model:'School.model.clazz.FileContact',
+	proxy:{
+		type:'ajax',
+		url:'/school/clazz/getAllClassByZTree',
+		reader:{
+			type:'json',
+			root:'children'
+		}
+	}
+})

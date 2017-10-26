@@ -1,0 +1,106 @@
+package com.topview.multimedia.po;
+
+/**
+ * 共享文件
+ */
+import java.util.Date;
+
+public class MultimediaFile {
+	
+    @Override
+	public String toString() {
+		return "MultimediaFile [id=" + id + ", tMId=" + tMId + ", name=" + name
+				+ ", uploadTime=" + uploadTime + ", size=" + size
+				+ ", uploader=" + uploader + ", type=" + type + ", filePath="
+				+ filePath + "]";
+	}
+
+	private String id;
+    
+    //所属文件夹的id
+    private String tMId;
+
+    //名称
+    private String name;
+    
+    //创建时间
+    private Date uploadTime;
+
+    //大小
+    private String size;
+
+    //上传者
+    private String uploader;
+
+    //类型
+    private Integer type;
+    
+    //文件路径
+    private String filePath;
+
+	public String getId() {
+		return id;
+	}
+
+	public void setId(String id) {
+		this.id = id;
+	}
+
+	public String gettMId() {
+		return tMId;
+	}
+
+	public void settMId(String tMId) {
+		this.tMId = tMId;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public Date getUploadTime() {
+		return uploadTime;
+	}
+
+	public void setUploadTime(Date uploadTime) {
+		this.uploadTime = uploadTime;
+	}
+
+	public String getSize() {
+		return size;
+	}
+
+	public void setSize(String size) {
+		this.size = size;
+	}
+
+	public String getUploader() {
+		return uploader;
+	}
+
+	public void setUploader(String uploader) {
+		this.uploader = uploader;
+	}
+
+	public Integer getType() {
+		return type;
+	}
+
+	public void setType(Integer type) {
+		this.type = type;
+	}
+
+	public String getFilePath() {
+		return filePath;
+	}
+
+	public void setFilePath(String filePath) {
+		this.filePath = filePath;
+	}
+
+    
+}

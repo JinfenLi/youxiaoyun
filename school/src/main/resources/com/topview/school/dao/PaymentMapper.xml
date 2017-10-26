@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.topview.school.dao.PaymentMapper" >
+  <resultMap id="BaseResultMap" type="com.topview.school.po.Payment" >
+    <id column="id" property="id" jdbcType="VARCHAR" />
+    <result column="t_sc_student_id" property="tScStudentId" jdbcType="CHAR" />
+    <result column="t_sc_parent_id" property="tScParentId" jdbcType="CHAR" />
+    <result column="t_sc_school_id" property="tScSchoolId" jdbcType="VARCHAR" />
+    <result column="deadline" property="deadline" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, t_sc_student_id, t_sc_parent_id, t_sc_school_id, deadline
+  </sql>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.String" >
+    select 
+    <include refid="Base_Column_List" />
+    from t_sc_payment
+    where id = #{id,jdbcType=VARCHAR}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String" >
+    delete from t_sc_payment
+    where id = #{id,jdbcType=VARCHAR}
+  </delete>
+  <insert id="insert" parameterType="com.topview.school.po.Payment" >
+    insert into t_sc_payment (id, t_sc_student_id, t_sc_parent_id, 
+      t_sc_school_id, deadline)
+    values (#{id,jdbcType=VARCHAR}, #{tScStudentId,jdbcType=CHAR}, #{tScParentId,jdbcType=CHAR}, 
+      #{tScSchoolId,jdbcType=VARCHAR}, #{deadline,jdbcType=TIMESTAMP})
+  </insert>
+  <insert id="insertSelective" parameterType="com.topview.school.po.Payment" >
+    insert into t_sc_payment
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="tScStudentId != null" >
+        t_sc_student_id,
+      </if>
+      <if test="tScParentId != null" >
+        t_sc_parent_id,
+      </if>
+      <if test="tScSchoolId != null" >
+        t_sc_school_id,
+      </if>
+      <if test="deadline != null" >
+        deadline,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=VARCHAR},
+      </if>
+      <if test="tScStudentId != null" >
+        #{tScStudentId,jdbcType=CHAR},
+      </if>
+      <if test="tScParentId != null" >
+        #{tScParentId,jdbcType=CHAR},
+      </if>
+      <if test="tScSchoolId != null" >
+        #{tScSchoolId,jdbcType=VARCHAR},
+      </if>
+      <if test="deadline != null" >
+        #{deadline,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.topview.school.po.Payment" >
+    update t_sc_payment
+    <set >
+      <if test="tScStudentId != null" >
+        t_sc_student_id = #{tScStudentId,jdbcType=CHAR},
+      </if>
+      <if test="tScParentId != null" >
+        t_sc_parent_id = #{tScParentId,jdbcType=CHAR},
+      </if>
+      <if test="tScSchoolId != null" >
+        t_sc_school_id = #{tScSchoolId,jdbcType=VARCHAR},
+      </if>
+      <if test="deadline != null" >
+        deadline = #{deadline,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.topview.school.po.Payment" >
+    update t_sc_payment
+    set t_sc_student_id = #{tScStudentId,jdbcType=CHAR},
+      t_sc_parent_id = #{tScParentId,jdbcType=CHAR},
+      t_sc_school_id = #{tScSchoolId,jdbcType=VARCHAR},
+      deadline = #{deadline,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+  
+  <!-- 通过家长id和学生id查找 -->
+  <select id="selectByParentIdAndStudentId" resultMap="BaseResultMap" parameterType="java.util.Map" >
+    select 
+    <include refid="Base_Column_List" />
+    from t_sc_payment
+    where t_sc_parent_id = #{parentId,jdbcType=CHAR}
+    and t_sc_student_id = #{studentId,jdbcType=CHAR}
+  </select>
+  <!-- 通过家长id和学生id更新有效期（具体到日） -->
+  <update id="updateDeadlineByParentIdAndStudentId" parameterType="java.util.Map" >
+    update t_sc_payment
+    set deadline = #{deadline,jdbcType=TIMESTAMP}
+    where t_sc_parent_id = #{parentId,jdbcType=CHAR}
+    and t_sc_student_id = #{studentId,jdbcType=CHAR}
+  </update>
+  <!-- 通过日期删除该日期以前已过期的所有记录（具体到日） -->
+  <delete id="deleteOverdueByDate" parameterType="java.util.Date" >
+    delete from t_sc_payment
+    where deadline &lt; #{date,jdbcType=TIMESTAMP}
+  </delete>
+</mapper>

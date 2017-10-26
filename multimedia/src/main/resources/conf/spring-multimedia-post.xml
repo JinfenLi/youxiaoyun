@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+		http://www.springframework.org/schema/beans/spring-beans-3.1.xsd 
+		http://www.springframework.org/schema/context 
+		http://www.springframework.org/schema/context/spring-context-3.1.xsd">
+
+	<bean id="postServiceImpl" class="com.topview.multimedia.service.post.PostServiceImpl">
+
+		<!-- 保存帖子 -->
+		<property name="savePostProcesses">
+			<list>
+				<ref bean="savePostProcess" />
+				<ref bean="savePostAccessoryProcess" />
+			</list>
+		</property>
+
+		<!-- 保存点赞 -->
+		<property name="savePraiseProcesses">
+			<list>
+				<ref bean="savePraiseProcess" />
+			</list>
+		</property>
+
+		<!-- 保存评论回复 -->
+		<property name="saveReplyProcesses">
+			<list>
+				<ref bean="saveReplyProcess" />
+			</list>
+		</property>
+
+		<!-- 查看帖子 -->
+		<property name="seePostProcesses">
+			<list>
+				<ref bean="seePostProcess" />
+			</list>
+		</property>
+
+		<!-- 查看评论回复 -->
+		<property name="seeReplyProcesses">
+			<list>
+				<ref bean="seeReplyProcess" />
+			</list>
+		</property>
+
+		<!-- 查看点赞 -->
+		<property name="seePraiseProcesses">
+			<list>
+				<ref bean="seePraiseProcess" />
+			</list>
+		</property>
+
+		<!-- 删除帖子、评论、点赞 -->
+		<property name="deleteProcesses">
+			<list>
+				<ref bean="deleteProcess" />
+			</list>
+		</property>
+
+		<!-- 判断是否点过赞 -->
+		<property name="judgePraiseProcesses">
+			<list>
+				<ref bean="judgePraiseProcess" />
+			</list>
+		</property>
+	</bean>
+</beans>

@@ -1,0 +1,596 @@
+package com.topview.school.controller.user;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.multipart.MultipartFile;
+
+import com.topview.message.service.PushMsgService;
+import com.topview.message.vo.OfflineMessageVo;
+import com.topview.school.po.Clazz;
+import com.topview.school.po.Grade;
+import com.topview.school.po.Parent;
+import com.topview.school.po.School;
+import com.topview.school.po.Student;
+import com.topview.school.po.StudentParentConnection;
+import com.topview.school.po.ValidationResult;
+import com.topview.school.po.ZTree;
+import com.topview.school.service.clazz.ClazzService;
+import com.topview.school.service.school.SchoolService;
+import com.topview.school.service.school.grade.GradeService;
+import com.topview.school.service.user.parent.ParentService;
+import com.topview.school.service.user.student.StudentService;
+import com.topview.school.util.ClassLoaderUtil;
+import com.topview.school.util.DateFormatUtil;
+import com.topview.school.util.DownloadAndUploadUtil;
+import com.topview.school.util.FileUploadUtil;
+import com.topview.school.util.JSONUtil;
+import com.topview.school.util.NotEmptyString;
+import com.topview.school.util.UUIDUtil;
+import com.topview.school.util.ValidationUtil;
+import com.topview.school.vo.FileUploadVo;
+import com.topview.school.vo.User.StudentAndParentInfo;
+import com.topview.school.vo.User.UserInfo;
+
+/**
+ * @Description 学生controller
+ * @Author <wuyiliang 757210697@qq.com>
+ * @Date 2015年8月16日 下午11:04:30
+ * @CopyRight 2015 TopView Inc
+ * @version V1.0
+ */
+@Controller
+@RequestMapping(value = "/student", produces = "text/html;charset=UTF-8")
+public class StudentController {
+
+	@Resource
+	private StudentService studentService;
+	@Resource
+	private ParentService parentService;
+	@Resource
+	private ClazzService clazzService;
+	@Resource
+	private GradeService gradeService;
+	@Resource
+	private SchoolService schoolService;
+	@Resource
+	private PushMsgService pushMsgService;
+	/**
+	 * 
+	 * @Title: downloadStudentAndParent
+	 * @Description: 下载学生和家长信息Excel表
+	 * @param @param request
+	 * @param @param respone
+	 * @param @return
+	 * @param @throws Exception
+	 * @return ResponseEntity<byte[]>
+	 * @throws
+	 */
+	@RequestMapping(value = "/downloadStudentAndParentExcel")
+	public ResponseEntity<byte[]> downloadStudentAndParent(
+			HttpServletRequest request, HttpServletResponse respone,
+			String clazzId) throws Exception {
+
+		List<StudentAndParentInfo> sapis = new ArrayList<StudentAndParentInfo>();
+		if (clazzId != null && !"".equals(clazzId)) {
+			// 1.查询班级学生
+			List<Student> students = studentService.selectByClazzId(clazzId);
+			// 2.查询每个学生对应的家长
+			for (Student s : students) {
+				List<Parent> parents = parentService.selectByStudentId(s
+						.getId());
+				StudentAndParentInfo sapi = new StudentAndParentInfo();
+				sapi.setStudentName(s.getName()); // 学生姓名
+				sapi.setStudentGender(s.getSex()); // 学生性别
+				sapi.setStudentIDCard(s.getIdcard()); // 学号
+				if (s.getBirthday() != null && !"".equals(s.getBirthday())) {
+					sapi.setFeteday(DateFormatUtil.formatDateToDay(s
+							.getBirthday())); // 出生年月
+				}
+				sapi.setStudentAddress(s.getAddress()); // 家庭住址
+				sapi.setEmergencyPhone(s.getEmergencyPhone()); // 紧急电话
+				sapi.setStudentPhone(s.getPhone()); // 家庭固定电话
+				sapi.setParentName(parents.get(0).getName()); // 家长1姓名
+				sapi.setParentGender(parents.get(0).getSex()); // 家长1性别
+				sapi.setParentPhone(parents.get(0).getMobile()); // 家长1电话
+				if (parents.size() == 2) {
+					sapi.setParent2Name(parents.get(1).getName()); // 家长2姓名
+					sapi.setParent2Gender(parents.get(1).getSex()); // 家长2性别
+					sapi.setParentPhone(parents.get(1).getMobile()); // 家长2手机号码
+				}
+				sapis.add(sapi);
+			}
+		}
+		// 3.处理目标文件路径
+		String fileName = "学生与家长信息";
+		String relativePath = ClassLoaderUtil.getExtendResource(
+				"../schoolUpload/studentAndParent", "school").toString();
+		String realPath = relativePath.replace("/", "\\");
+		File file = new File(realPath);
+		if (!file.exists()) {
+			file.mkdirs();
+		}
+		String filePath = realPath + "\\" + fileName;
+		// 4.生成excel文件
+		studentService.createStudentAndParentExcel(filePath, sapis);
+		File targetFile = new File(filePath);
+		return DownloadAndUploadUtil.download(request, targetFile, fileName);
+	}
+
+	/**
+	 * 
+	 * @Title: saveStudentAndParent
+	 * @Description: 上传学生家长excel
+	 * @param @param file
+	 * @param @param request
+	 * @param @param session
+	 * @param @return
+	 * @param @throws Exception
+	 * @return String
+	 * @throws
+	 */
+	@Transactional
+	@RequestMapping(value = "/saveStudentAndParent", method = RequestMethod.POST)
+	@ResponseBody
+	public String saveStudentAndParent(
+			@RequestParam("file") MultipartFile file,
+			HttpServletRequest request, String clazzId, HttpSession session) throws Exception {
+		Map<String, Object> resultMap = new HashMap<String, Object>();
+		UserInfo userInfo = (UserInfo) session.getAttribute("currentUser");
+		// 1.保存文件到服务器
+		FileUploadVo vo = FileUploadUtil.uploadFile(file, userInfo.getSchool_id() + "/studentInfo",
+				request, true);
+		// 2.解析excel并保存到数据库
+		List<Student> students = new ArrayList<Student>();
+		boolean flag = studentService.uploadStudentAndParentInfo(
+				vo.getFileName(), vo.getRealPath() + "\\" + vo.getFileName(),
+				clazzId,students);
+		if(flag) {
+			sendContact(clazzId,userInfo.getUser_id());
+		}
+		resultMap.put("success", flag);
+		resultMap.put("students", students);
+		String[] filter={"createTime","lastupdate","address","birthday","emergencyPhone","id"
+				,"idcard","password","phone","picurl","sex","tScClassId"};
+		return JSONUtil.toObject(resultMap,filter).toString();
+	}
+	
+	/**
+	 * 
+	* @Title: addStudentAndParent
+	* @Description: 添加学生和家长
+	* @param @param infoJSON
+	* @param @param clazzId
+	* @param @return    参数
+	* @return String    返回类型
+	* @throws
+	 */
+	@Transactional
+	@RequestMapping("/addStudentAndParent")
+	@ResponseBody
+	public String addStudentAndParent(StudentAndParentInfo info, String clazzId) {
+		Map<String, Object> resultMap = new HashMap<String, Object>();
+		ValidationResult res = ValidationUtil.validateEntity(info);
+		if(res.isHasErrors()) {
+			resultMap.put("success", false);
+			resultMap.put("errorMsg", res.getErrorMsg());
+			return JSONUtil.toObject(resultMap).toString();
+		}
+		Student student = studentService.judgeStudent(info.getStudentName(), info.getParentPhone());
+		List<Student> students = new ArrayList<Student>();   //前端要求返回集合
+		if(null != student) {
+			students.add(student);
+			resultMap.put("success", false);
+		}else {
+			resultMap.put("success", studentService.addStudentAndParent(info, clazzId));
+		}
+		resultMap.put("students", students);
+		boolean flag = true;
+		flag = studentService.addStudentAndParent(info, clazzId);
+		if(flag) {
+			sendContact(clazzId,info.getParentId());
+		}
+		resultMap.put("success", flag);
+		String[] filter={"createTime","lastupdate","address","birthday","emergencyPhone","id"
+				,"idcard","password","phone","picurl","sex","tScClassId"};
+		return JSONUtil.toObject(resultMap,filter).toString();
+	}
+
+	/**
+	 * 根据班级id查询学生和主家长信息
+	 * 
+	 * @param clazzId
+	 * @return
+	 */
+	@RequestMapping("/getStudentsByClazzId")
+	@ResponseBody
+	public String getStudentsByClazzId(String clazzId) {
+		Map<String, Object> resultMap = new HashMap<String, Object>();
+		String[] filter = { "birthday", "studentPassword", "feteday",
+				"parentGender", "parentPassword", "parent2Name",
+				"parent2Gender", "parent2Phone", "parent2Password" };
+		List<StudentAndParentInfo> sapis = new ArrayList<StudentAndParentInfo>(); // 存放学生和家长信息
+		List<Student> students = studentService.selectByClazzId(clazzId);
+		for (Student s : students) {
+			StudentAndParentInfo info = new StudentAndParentInfo();
+			info.setStudentId(s.getId());
+			if(s.getBirthday()!=null){
+					info.setStudentBirthday(DateFormatUtil.formatDateToSeconds(s.getBirthday()));
+			}
+			info.setStudentIDCard(s.getIdcard());
+			info.setStudentName(s.getName());
+			info.setStudentAddress(s.getAddress());
+			info.setStudentGender(s.getSex());
+			info.setStudentPhone(s.getPhone());
+			info.setEmergencyPhone(s.getEmergencyPhone());
+			Parent p = parentService.selectMainParent(s.getId());
+			info.setParentId(p.getId());
+			info.setParentName(p.getName());
+			info.setParentPhone(p.getMobile());
+			sapis.add(info);
+		}
+		resultMap.put("success", true);
+		resultMap.put("studentInfo", sapis);
+		return JSONUtil.toObject(resultMap, filter).toString();
+	}
+
+	/**
+	 * web端修改学生信息
+	 * @param studentAndParentInfo
+	 * @return
+	 */
+	@Transactional
+	@RequestMapping("updateStudentInfo")
+	@ResponseBody
+	public String updateStudentInfo(StudentAndParentInfo studentAndParentInfo) {
+		Map<String, Object> resultMap = new HashMap<String, Object>();
+		ValidationResult res = ValidationUtil.validateEntity(studentAndParentInfo);
+		if(res.isHasErrors()) {
+			resultMap.put("success", false);
+			resultMap.put("errorMsg", res.getErrorMsg());
+			return JSONUtil.toObject(resultMap).toString();
+		}
+		// 目前web端只显示部分字段，所以只提供修改部分字段
+		String parentPhone = studentAndParentInfo.getParentPhone();
+		if (parentPhone == null || "".equals(parentPhone)) {
+			resultMap.put("success", false);
+			resultMap.put("msg", "监护人联系方式不能为空");
+			return JSONUtil.toObject(resultMap).toString();
+		}
+		List<Student> students = new ArrayList<Student>();   //前端要求返回集合
+		//判断学生是否重复
+		Student student = studentService.judgeStudent(studentAndParentInfo.getStudentName(), studentAndParentInfo.getParentPhone());
+		if(null != student) {
+			if(!student.getId().equals(studentAndParentInfo.getStudentId())) {
+				students.add(student);
+				resultMap.put("students", students);
+				resultMap.put("success", false);
+				String[] filter={"createTime","lastupdate","address","birthday","emergencyPhone","id"
+						,"idcard","password","phone","picurl","sex","tScClassId"};
+				return JSONUtil.toObject(resultMap,filter).toString();
+			}
+		}
+		if(parentService.findByMoble(parentPhone)==null){
+			Parent newParent=new Parent();
+			newParent.setId(UUIDUtil.getUUID());
+			newParent.setMobile(parentPhone);
+			newParent.setName(studentAndParentInfo.getParentName());
+			newParent.setCreateTime(new Date());
+			newParent.setParenttype("1");
+			newParent.setPassword("123456");
+			newParent.setType(1);
+			this.parentService.addParent(newParent, studentAndParentInfo.getStudentId());
+			StudentParentConnection psc=new StudentParentConnection();
+			psc.setParentId(newParent.getId());
+			psc.setStudentId(studentAndParentInfo.getStudentId());
+			this.parentService.updateConnection(psc);	
+		}
+		else if(parentService.findByMoble(parentPhone)!=null){
+			StudentParentConnection psc=new StudentParentConnection();
+			Parent newParent = parentService.findByMoble(parentPhone);
+			if(studentAndParentInfo.getParentName()!=null) {
+				newParent.setName(studentAndParentInfo.getParentName());
+			}
+			psc.setParentId(newParent.getId());
+			psc.setStudentId(studentAndParentInfo.getStudentId());
+			this.parentService.updateParent(newParent);
+			this.parentService.updateConnection(psc);
+		}
+		Student s = studentService.selectByPrimaryKey(studentAndParentInfo
+				.getStudentId());
+		
+		
+		
+		s.setIdcard(studentAndParentInfo.getStudentIDCard());
+		if(studentAndParentInfo.getStudentBirthday()!=null && !"".equals(studentAndParentInfo.getStudentBirthday())){
+			s.setBirthday(DateFormatUtil.parseToDay(studentAndParentInfo.getStudentBirthday()));
+		}
+		s.setName(studentAndParentInfo.getStudentName());
+		s.setSex(studentAndParentInfo.getStudentGender());
+		s.setAddress(studentAndParentInfo.getStudentAddress());
+		s.setPhone(studentAndParentInfo.getStudentPhone());
+		s.setEmergencyPhone(studentAndParentInfo.getEmergencyPhone());
+		
+		Parent p = parentService.selectByPrimaryKey(studentAndParentInfo
+				.getParentId());
+		if(NotEmptyString.isNotNullString(studentAndParentInfo.getParentName())){	
+				p.setName(studentAndParentInfo.getParentName());
+		}
+		resultMap.put("success", parentService.updateParent(p)
+				&& studentService.updateStudent(s));
+		
+		ValidationResult validationResult = ValidationUtil.validateEntity(s);
+		System.out.println(validationResult.toString());
+		resultMap.put("students", students);
+		
+		Student temp = studentService.selectByPrimaryKey(studentAndParentInfo.getStudentId());
+		if(temp != null) {
+			sendContact(temp.gettScClassId(),temp.getId());
+		}
+		
+		return JSONUtil.toObject(resultMap).toString();
+	}
+	
+	/**
+	 * web端批量修改学生信息
+	 * @param studentAndParentInfo
+	 * @return
+	 */
+	@Transactional
+	@RequestMapping("updateStudentInfos")
+	@ResponseBody
+	public String updateStudentInfos(@RequestBody StudentAndParentInfo[] studentAndParentInfos) {
+		Map<String, Object> resultMap = new HashMap<String, Object>();
+		List<Student> students = new ArrayList<Student>();
+		for(StudentAndParentInfo studentAndParentInfo : studentAndParentInfos) {
+			ValidationResult res = ValidationUtil.validateEntity(studentAndParentInfo);
+			if(res.isHasErrors()) {
+				resultMap.put("success", false);
+				resultMap.put("errorMsg", res.getErrorMsg());
+				return JSONUtil.toObject(resultMap).toString();
+			}
+			// 目前web端只显示部分字段，所以只提供修改部分字段
+			String parentPhone = studentAndParentInfo.getParentPhone();
+			if (parentPhone == null || "".equals(parentPhone)) {
+				resultMap.put("success", false);
+				resultMap.put("msg", "监护人联系方式不能为空");
+				return JSONUtil.toObject(resultMap).toString();
+			}
+			//判断学生是否重复
+			Student student = studentService.judgeStudent(studentAndParentInfo.getStudentName(), studentAndParentInfo.getParentPhone());
+			if(null != student) {
+				if(!student.getId().equals(studentAndParentInfo.getStudentId())) {
+					students.add(student);
+					continue;
+				}
+			}
+			if(parentService.findByMoble(parentPhone)==null){
+				Parent newParent=new Parent();
+				newParent.setId(UUIDUtil.getUUID());
+				newParent.setMobile(parentPhone);
+				newParent.setName(studentAndParentInfo.getParentName());
+				newParent.setCreateTime(new Date());
+				newParent.setParenttype("1");
+				newParent.setPassword("123456");
+				newParent.setType(1);
+				this.parentService.addParent(newParent, studentAndParentInfo.getStudentId());
+				StudentParentConnection psc=new StudentParentConnection();
+				psc.setParentId(newParent.getId());
+				psc.setStudentId(studentAndParentInfo.getStudentId());
+				this.parentService.updateConnection(psc);	
+			}
+			else if(parentService.findByMoble(parentPhone)!=null){
+				StudentParentConnection psc=new StudentParentConnection();
+				Parent newParent = parentService.findByMoble(parentPhone);
+				if(studentAndParentInfo.getParentName()!=null) {
+					newParent.setName(studentAndParentInfo.getParentName());
+				}
+				psc.setParentId(newParent.getId());
+				psc.setStudentId(studentAndParentInfo.getStudentId());
+				this.parentService.updateParent(newParent);
+				this.parentService.updateConnection(psc);
+			}
+			Student s = studentService.selectByPrimaryKey(studentAndParentInfo
+					.getStudentId());
+			
+			
+			
+			s.setIdcard(studentAndParentInfo.getStudentIDCard());
+			if(studentAndParentInfo.getStudentBirthday()!=null && !"".equals(studentAndParentInfo.getStudentBirthday())){
+				s.setBirthday(DateFormatUtil.parseToDay(studentAndParentInfo.getStudentBirthday()));
+			}
+			s.setName(studentAndParentInfo.getStudentName());
+			s.setSex(studentAndParentInfo.getStudentGender());
+			s.setAddress(studentAndParentInfo.getStudentAddress());
+			s.setPhone(studentAndParentInfo.getStudentPhone());
+			s.setEmergencyPhone(studentAndParentInfo.getEmergencyPhone());
+			
+			Parent p = parentService.selectByPrimaryKey(studentAndParentInfo
+					.getParentId());
+			if(NotEmptyString.isNotNullString(studentAndParentInfo.getParentName())){	
+					p.setName(studentAndParentInfo.getParentName());
+			}
+			if(!(parentService.updateParent(p)
+					&& studentService.updateStudent(s))) {
+				resultMap.put("success", false);
+				return JSONUtil.toObject(resultMap).toString();
+			}
+			ValidationResult validationResult = ValidationUtil.validateEntity(s);
+			System.out.println(validationResult.toString());
+		}
+		Student temp = studentService.selectByPrimaryKey(studentAndParentInfos[0].getStudentId());
+		if(temp != null) {
+			sendContact(temp.gettScClassId(),temp.getId());
+		}
+		resultMap.put("success", true);
+		resultMap.put("students", students);
+		String[] filter={"createTime","lastupdate","address","birthday","emergencyPhone","id"
+				,"idcard","password","phone","picurl","sex","tScClassId"};
+		return JSONUtil.toObject(resultMap,filter).toString();
+	}
+	
+	/**
+	 * 删除学生家长
+	 * @param id
+	 * @return
+	 */
+	@Transactional
+	@RequestMapping("deleteStudent")
+	@ResponseBody
+	public String deleteStudent(String studentId, String parentId) {
+		Map<String, Object> resultMap = new HashMap<String, Object>();
+		Student temp = studentService.queryById(studentId);
+		boolean flag = studentService.deleteStudentAndParent(studentId, parentId);
+		resultMap.put("success", flag);
+		if(!flag) {
+			resultMap.put("msg", "该账号关联其他重要数据，如需删除请联系系统管理员!");
+		}
+		if(temp != null && flag) {
+			System.out.println(studentId + " -----  " + parentId);
+			sendContact(temp.gettScClassId(),temp.getId());
+		}
+		return JSONUtil.toObject(resultMap).toString();
+	}
+	
+	
+	@RequestMapping("/getAllStudentByZTree")
+	@ResponseBody
+	public String getAllStudentByZTree(String schoolId) {
+		Map<String, Object> resulMap = new HashMap<String, Object>();
+		if(NotEmptyString.isNotEmpty(new String[]{schoolId})) {
+			School school = schoolService.selectByPrimaryKey(schoolId);
+			
+			ZTree firstNode = new ZTree();
+			firstNode.setLeaf(false);
+			firstNode.setChecked(false);
+			firstNode.setName(school.getName());
+			firstNode.setId(school.getId());
+			
+			List<Grade> grades = gradeService.getAllGrade(schoolId);
+			List<ZTree> son = new ArrayList<ZTree>();
+			for(Grade grade: grades) {
+				ZTree secondNode = new ZTree();
+				secondNode.setChecked(false);
+				secondNode.setLeaf(false);
+				secondNode.setName(grade.getName());
+				secondNode.setId(grade.getId());
+				secondNode.setExpanded(true);
+				
+				List<Clazz> clazzs = clazzService.getClazzByGradeId(grade.getId());
+				List<ZTree> litleSon = new ArrayList<ZTree>();
+				if(null != clazzs) {
+					for(Clazz clazz:clazzs) {
+						ZTree thirdNode = new ZTree();
+						thirdNode.setChecked(false);
+						thirdNode.setLeaf(false);
+						thirdNode.setName(clazz.getName());
+						thirdNode.setId(clazz.getId());
+						thirdNode.setExpanded(true);
+						
+						List<Student> list_student = studentService.selectByClazzId(clazz.getId());
+						List<ZTree> thirdSon = new ArrayList<ZTree>();
+						if(list_student != null) {
+							for(Student student: list_student) {
+								ZTree fourthNode = new ZTree();
+								fourthNode.setChecked(false);
+								fourthNode.setLeaf(true);
+								fourthNode.setName(student.getName());
+								fourthNode.setId(student.getId());
+								fourthNode.setExpanded(true);
+								thirdSon.add(fourthNode);
+							}
+							thirdNode.setChildren(thirdSon);
+						}
+						
+						litleSon.add(thirdNode);
+					}
+					secondNode.setChildren(litleSon);
+				}
+				son.add(secondNode);
+			}
+			firstNode.setChildren(son);
+			resulMap.put("children", firstNode);
+		}else {
+		}
+		return JSONUtil.toObject(resulMap).toString();
+	}
+	
+	@RequestMapping("/getAllStudentByUserIdAndTermId")
+	@ResponseBody
+	public String getAllStudentByUserIdAndTermId(String userId, String termId) {
+		Map<String, Object> resulMap = new HashMap<String, Object>();
+		
+		ZTree firstNode = new ZTree();
+		firstNode.setLeaf(false);
+		firstNode.setChecked(false);
+		
+		List<Clazz> list_clazz = clazzService.selectTeacherClazzs(userId, termId);
+		List<ZTree> litleSon = new ArrayList<ZTree>();
+		if(null != list_clazz) {
+			for(Clazz clazz:list_clazz) {
+				ZTree thirdNode = new ZTree();
+				thirdNode.setChecked(false);
+				thirdNode.setLeaf(false);
+				thirdNode.setName(clazz.getName());
+				thirdNode.setId(clazz.getId());
+				thirdNode.setExpanded(true);
+				
+				List<Student> list_student = studentService.selectByClazzId(clazz.getId());
+				List<ZTree> thirdSon = new ArrayList<ZTree>();
+				if(list_student != null) {
+					for(Student student: list_student) {
+						ZTree fourthNode = new ZTree();
+						fourthNode.setChecked(false);
+						fourthNode.setLeaf(true);
+						fourthNode.setName(student.getName());
+						fourthNode.setId(student.getId());
+						fourthNode.setExpanded(true);
+						thirdSon.add(fourthNode);
+					}
+					thirdNode.setChildren(thirdSon);
+				}
+				
+				litleSon.add(thirdNode);
+			}
+			firstNode.setChildren(litleSon);
+		}
+		resulMap.put("success", "true");
+		resulMap.put("firstNode", firstNode);
+		return JSONUtil.toObject(resulMap).toString();
+	}
+	
+	private boolean sendContact(String receiverId,String senderId) {
+		OfflineMessageVo message = new OfflineMessageVo();
+		String messageId = UUIDUtil.getUUID();
+		message.setMessageId(messageId);
+		message.setReceiverId(receiverId);
+		message.setContent(messageId);
+		message.setStatue("2");
+		message.setSenderId(senderId);
+		message.setType("10");
+		message.setMessageType("1");
+		message.setSendTime(DateFormatUtil.formatDateToSeconds (new Date()));
+		pushMsgService.saveOfflineMessage(message);
+		pushMsgService.pushMessage(message);
+		System.out.println(message.toJsonString());
+		return true;
+	}
+	
+}

@@ -1,0 +1,54 @@
+<!DOCTYPE>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>无标题文档</title>
+
+<script src="ext/ext-dev.js"></script>
+<script>
+	Ext.onReady(function() {
+		Ext.define("testModel", {
+			extend: "Ext.data.Model",
+			fields: [{name: 'name'},{name: 'age'},{name: 'add'}] 
+		});
+		
+		Ext.define('testStore', {
+			extend: "Ext.data.Store",
+			model: "testModel",
+			proxy: {
+				
+				url: 'test.json',
+			 	reader: {
+				 type: 'json',
+				 rootProperty: 'name'
+			 	},
+				root: 'data',
+			},
+			autoLoad: true,
+			
+			});
+			
+		// var store = Ext.create('Ext.data.Store', {
+		// 	url: "test.json",
+		// 	fields: ['name', 'age', 'add'],
+		// 	autoLoad: true,
+		// 	root: 'data'
+		// 	})
+		
+		Ext.create('Ext.grid.Panel', {
+			title: 'test',
+			store: Ext.create("testStore"),
+			width: 320,
+			height: 250,
+			columns: [{ text: 'name', dataIndex: 'name'},
+					  { text: 'age', dataIndex: 'age'},
+					  { text: 'add', dataIndex: 'add'}],
+			//colModel: columns,		  
+			renderTo: document.body		  
+			})	
+	});
+</script>
+</head>
+
+<body>
+</body>
+</html>

@@ -1,0 +1,147 @@
+/**
+* @class School.view.exam.ScoreMgr
+* @author ChessZhang
+* @contact k3note2@gmial.com
+* @description: 成绩管理的gridPanel
+*/
+Ext.define("School.view.exam.ScoreMgr", {
+	extend: "Ext.grid.Panel",
+	requires:[
+		"School.store.school.ScoreMgr"
+	],
+	alias: "widget.scoremgr",
+	forceFit: true,
+	initComponent: function() {
+		this.store = Ext.create("School.store.school.ScoreMgr");
+		this.columns = [
+			{
+				text: "考试id",
+				hidden: true,
+				dataIndex: "id"
+			},
+			{
+				text: "学号",
+				dataIndex: "idCard"
+			},
+			{
+				text: "姓名",
+				dataIndex: "studentName"
+			},
+			{
+				text: "考试名称",
+				dataIndex: "examName"
+			},
+			{
+				text: "成绩",
+				dataIndex: "score"
+			},
+			{
+				text: "排名",
+				dataIndex: "ranking"
+			}
+			
+		];
+
+		//固定菜单栏
+		this.dockedItems = [
+			{
+				xtype: "toolbar",
+				flex: 1,
+				dock: "top",
+				items: [
+					{
+						xtype: "button",
+						iconCls: "upload",
+						//glyph: 0xf093,
+						text: "导入成绩",
+						itemId: "uploadScore"
+					},
+					
+					{
+						xtype: 'button',
+						text: "导出成绩 / 模板",
+						//glyph: 0xf019,
+						iconCls: "download",
+						itemId: "downloadScore"
+
+					},
+					{
+						xtype: "button",
+						//glyph: 0xf00d,
+						iconCls: "delete",
+						text: "删除成绩",
+						itemId: "delete"
+						//margin: "0 20 0 0"
+					}, 
+					{
+						xtype: 'button',
+						iconCls: 'key',
+						text: '提交成绩',
+						itemId: 'submitExam'
+					},
+					{
+						xtype: "label",
+						margin: "0 0 0 60",
+						text: "当前考试："
+					},
+					{
+						xtype: "label",
+						itemId: "examName",
+						style: {
+							color: "red",
+							fontWeight: "800"
+						}
+					},
+					{
+						xtype: "label",
+						margin: "0 0 0 60",
+						text: "平均分："
+					},
+					{
+						xtype: "label",
+						itemId: "average",
+						style: {
+							color: "red",
+							fontWeight: "800"
+						}
+					},
+					{
+						xtype: "label",
+						margin: "0 0 0 60",
+						text: "最高分："
+					},
+					{
+						xtype: "label",
+						itemId: "maxScore",
+						style: {
+							color: "red",
+							fontWeight: "800"
+						}
+					},
+					{
+						xtype: "label",
+						margin: "0 0 0 60",
+						text: "最低分："
+					},
+					{
+						xtype: "label",
+						itemId: "minScore",
+						style: {
+							color: "red",
+							fontWeight: "800"
+						}
+					}
+				]
+			},
+			// {  
+		 //        xtype: 'pagingtoolbar',  
+		 //        store: this.getStore(),   // same store GridPanel is using  
+		 //        dock: 'bottom',  
+		 //        displayInfo: true  
+		 //    }  
+		];
+		this.callParent(arguments);
+	}
+
+});
+

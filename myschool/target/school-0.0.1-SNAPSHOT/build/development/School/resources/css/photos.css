@@ -1,0 +1,30 @@
+/*
+*照片管理界面的相关css设置
+*包括设置了照片的浮动
+* 文字溢出处理等等
+ */
+.simplecms-imageList{
+	float: left;
+	display: block;
+	width: 180px;
+	height: 200px;
+	margin-bottom: 50px;
+	padding: 10px;
+
+}
+.simplecms-imageList p{
+	text-align: center;
+	overflow: hidden;
+	line-height: 20px;
+
+}
+.ellpsis{
+	-o-text-overflow:ellpsis;
+	text-overflow: ellpsis;
+	-moz-biding: url("ellpsis.xml#ellpsis");
+	white-space: nowrap;
+	overflow: hidden;
+}
+.tag {
+	float: right;
+}

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:task="http://www.springframework.org/schema/task"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+						http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+						http://www.springframework.org/schema/context 
+	 					http://www.springframework.org/schema/context/spring-context-3.1.xsd
+	 					http://www.springframework.org/schema/aop
+	 					http://www.springframework.org/schema/aop/spring-aop-3.1.xsd
+	 					http://www.springframework.org/schema/tx
+	 					http://www.springframework.org/schema/tx/spring-tx-3.1.xsd
+	 					http://www.springframework.org/schema/task
+						http://www.springframework.org/schema/task/spring-task-3.1.xsd">
+
+
+	<!-- 引入属性文件 -->
+	<context:property-placeholder location="classpath:config-message.properties" ignore-unresolvable="true"/>
+	<!-- 配置c3p0连接池 -->
+	<bean id="message_dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource"
+		destroy-method="close">
+		<property name="driverClass" value="${message_jdbc.driver}" />
+		<property name="jdbcUrl" value="${message_jdbc.url}" />
+		<property name="user" value="${message_jdbc.username}" />
+		<property name="password" value="${message_jdbc.password}" />
+
+		<property name="acquireIncrement" value="${message_c3p0.acquireIncrement}" /><!-- 
+			当连接池中的连接耗尽的时候c3p0一次同时获取的连接数。Default: 3 -->
+		<property name="initialPoolSize" value="${message_c3p0.initialPoolSize}" /><!-- 
+			初始化时获取的连接数，取值应在minPoolSize与maxPoolSize之间。Default: 3 -->
+		<property name="maxIdleTime" value="${message_c3p0.maxIdleTime}" /><!-- 
+			最大空闲时间,规定时间内未使用则连接被丢弃。若为0则永不丢弃。Default: 0 -->
+		<property name="maxPoolSize" value="${message_c3p0.maxPoolSize}" /><!-- 
+			连接池中保留的最大连接数。Default: 15 -->
+		<property name="minPoolSize" value="${message_c3p0.minPoolSize}" /><!-- 
+			连接池中保留的最小连接数 -->
+	</bean>
+
+	<!-- 定义一个SqlSessionFactoryBean,用于生成SqlSessionFactory -->
+	<bean id="messageSqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="message_dataSource" />
+		<property name="mapperLocations" value="classpath:com/topview/message/dao/*.xml" />
+		<property name="typeAliasesPackage" value="com.topview.message.po" />
+	</bean>
+
+	<!-- 定义一个template -->
+	<bean id="message_sqlSessionTemplate" class="org.mybatis.spring.SqlSessionTemplate">
+		<constructor-arg index="0" ref="messageSqlSessionFactory" />
+	</bean>
+
+	<bean id="message_transactionManager"
+		class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="message_dataSource" />
+	</bean>
+
+</beans>

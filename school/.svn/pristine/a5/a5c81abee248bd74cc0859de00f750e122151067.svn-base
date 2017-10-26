@@ -1,0 +1,82 @@
+package com.topview.school.dao.curricula.impl;
+
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.stereotype.Repository;
+
+import com.topview.school.dao.base.impl.BaseDaoImpl;
+import com.topview.school.dao.curricula.CurriculaVariableMapper;
+import com.topview.school.po.CurriculaVariable;
+import com.topview.school.vo.curricula.ChooseCurriculaInfo;
+import com.topview.school.vo.curricula.CurriculaVariableInfo2;
+import com.topview.school.vo.curricula.UploadCurriculaInfoVo;
+
+/**
+ * 
+ * 项目名称：school  <br>
+ * 类名称：CurriculaVariableMapperImpl  <br>
+ * 类描述：  <br>
+ * 创建人：luozhangjie  <br>
+ * 创建时间：2015年3月26日 下午8:41:56  <br>
+ * 修改人：luozhangjie<br>
+ * 修改时间：2015年3月26日 下午8:41:56  <br>
+ * 修改备注：  <br>
+ * @version 1.0  <br>
+ *
+ */
+@Repository
+public class CurriculaVariableMapperImpl extends BaseDaoImpl<CurriculaVariable> implements CurriculaVariableMapper{
+
+	@Override
+	public List<CurriculaVariable> selectByTeacherId(String teacherId) {
+		return template.selectList(getStatement("selectByTeacherId"), teacherId);
+	}
+
+	@Override
+	public CurriculaVariable selectByCurriculaIdAndClassId(String curriculaId,
+			String classId) {
+		CurriculaVariable cv = new CurriculaVariable();
+		cv.settScCurriculaId(curriculaId);
+		cv.settScClassId(classId);
+		return template.selectOne(getStatement("selectByCurriculaIdAndClassId"), cv);
+	}
+
+	@Override
+	public List<CurriculaVariable> selectBySemesterIdAndCurricualId(
+			Map<String, Object> map) {
+		return template.selectList(getStatement("selectBySemesterIdAndCurricualId"), map);
+	}
+
+	@Override
+	public List<CurriculaVariableInfo2> showCurriculaVariable(
+			Map<String, Object> map) {
+		return template.selectList(getStatement("showCurriculaVariable"), map);
+	}
+
+	@Override
+	public int selectCount(Map<String, Object> map) {
+		return template.selectOne(getStatement("selectCount"), map);
+	}
+	
+	@Override
+	public List<UploadCurriculaInfoVo> selectBySemesterIdAndClazzId(
+			Map<String, Object> map) {
+		return template.selectList(
+				getStatement("selectBySemesterIdAndClazzId"), map);
+	}
+
+	@Override
+	public ChooseCurriculaInfo getClazzCurriculaInfo(
+			Map<String, Object> params) {
+			if(template.selectList(getStatement("getClazzCurriculaInfo"),params).size()>0){
+				return (ChooseCurriculaInfo) template.selectList(getStatement("getClazzCurriculaInfo"),params).get(0);
+			}
+			return null;
+	}
+
+	@Override
+	public List<CurriculaVariable> getCurriculaByTeacherAndSemesterId(Map<String, Object> map) {
+		return template.selectList(getStatement("getCurriculaByTeacherAndSemesterId"),map);
+	}
+}

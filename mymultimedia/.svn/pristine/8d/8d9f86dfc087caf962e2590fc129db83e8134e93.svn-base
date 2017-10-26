@@ -1,0 +1,77 @@
+package com.topview.multimedia.service.post;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+
+import org.springframework.stereotype.Service;
+
+import com.topview.multimedia.dao.PostAccessoryMapper;
+import com.topview.multimedia.dao.PostMapper;
+import com.topview.multimedia.dao.PraiseMapper;
+import com.topview.multimedia.dao.ReplyMapper;
+import com.topview.multimedia.po.Post;
+import com.topview.multimedia.po.PostAccessory;
+import com.topview.multimedia.vo.PostVo;
+import com.topview.multimedia.vo.result.PostVoResult;
+
+/**
+ * @Description 查看帖子
+ * @Author <wuyiliang 757210697@qq.com>
+ * @Date 2015年8月6日 下午4:26:44
+ * @CopyRight 2015 TopView Inc
+ * @version V1.0
+ */
+@Service
+public class SeePostProcess implements PostProcess {
+
+	@Resource
+	private PostMapper postMapper;
+	@Resource
+	private PostAccessoryMapper postAccessoryMapper;
+	@Resource
+	private ReplyMapper replyMapper;
+	@Resource
+	private PraiseMapper praiseMapper;
+	
+	public boolean doProcess(PostProcessContext context) {
+
+		PostVoResult result = context.getPostVoResult();
+		String clazzId = context.getPostVo().gettMId();
+		int status = context.getPostVo().getStatus();
+		String lastUpdate = context.getPostVo().getCreateTime();
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("clazzId", clazzId);
+		map.put("status", status);
+		map.put("createTime", lastUpdate);
+		List<Post> pos = postMapper.selectByClazzIdAndDate(map);
+		if (pos.size() > 0) {
+			List<PostVo> vos = PostVo.changeToVo(pos);
+			
+			for(int i = 0; i < vos.size(); i++) {
+				String postId = vos.get(i).getId();
+				//查询评论数
+				vos.get(i).setRepliesCount(replyMapper.selectCount(postId));
+				//查询点赞数
+				vos.get(i).setPraisesCount(praiseMapper.selectCount(postId));
+				//查询附件列表
+				List<String> urls = new ArrayList<String>();
+				List<PostAccessory> accessories = postAccessoryMapper.selectByPostId(vos.get(i).getId()); //查询附件列表
+				for(int j = 0; j < accessories.size(); j++) {
+					urls.add(accessories.get(j).getUrl());
+				}
+				vos.get(i).setUrls(urls);
+			}
+			
+			result.setSuccess(true);
+			result.setPosts(vos);
+			context.setPostVoResult(result);
+			return true;
+		}
+		return false;
+	}
+
+}

@@ -1,0 +1,195 @@
+/**
+ * 
+ * Author: ccDeng
+ * Contact: 173634610@qq.com
+ * Description: 超级管理员查看所有学校的登陆情况的view
+ * 
+ */
+Ext.define("School.view.area.Getloginmgr", {
+	extend: "Ext.grid.Panel",
+	alias:"widget.getloginmgr",
+	itemId: "getloginmgr",
+	requires:[
+		"School.store.area.AreaMgr"
+	],
+	initComponent: function() {
+		this.store = Ext.create("School.store.area.AreaMgr");
+		this.columns = [{
+			text: "id",
+			hidden: true,
+			sortable: false,
+			text: "学校id",
+			dataIndex: "id"
+		}, {
+			text: "学校名称",
+			flex: 2,
+			dataIndex: "name"
+		}, {
+			text: "学校地址",
+				flex: 2,
+			dataIndex: "address"
+		}, {
+			text: "联系电话",
+			flex: 2,
+			dataIndex: "phone"
+		},{
+			text:"家长安装率",
+			dataIndex:"loginCountMap.loginParentPercentage",
+			flex:2
+		},{
+			text:"教师安装率",
+			dataIndex:"loginCountMap.loginTeacherPercentage",
+			flex:2
+		},{
+			xtype: "actioncolumn",
+			flex: 1,
+			itemId: "teacherLastLogin",
+			header: "学校老师最后登录",
+			align: "center",
+			items: [{
+				iconCls: "key_go",
+				handler: function(grid, rowIndex, colIndex) {
+					this.fireEvent("itemclick", grid, rowIndex, colIndex);
+				}
+			}]
+		}, {
+			xtype: "actioncolumn",
+			flex: 1,
+			itemId: "readLogin",
+			header: "查看使用情况",
+			align: "center",
+			items: [{
+				iconCls: "key_go",
+				handler: function(grid, rowIndex, colIndex) {
+					this.fireEvent("itemclick", grid, rowIndex, colIndex);
+				}
+			}]
+		}];
+
+		//固定菜单栏
+		this.dockedItems = [{
+			xtype: "toolbar",
+			flex: 1,
+			dock: "top",
+			defaults: {
+				defaults: {
+					margin: "0 20 0 0"
+				}
+			},
+			layout: 'vbox',
+			items: [{
+				xtype: 'form',
+				layout: 'hbox',
+				items: [{
+					fieldLabel: "省",
+					labelWidth: 20,
+					itemId: "province",
+					xtype: "combo",
+					triggerAction: "all",
+					width: 185,
+					displayField: "name",
+					emptyText: "请选择...",
+					editable: false,
+					valueField: "id",
+					//获取数据集
+					store: Ext.create("School.store.area.AreaQuery"),
+					queryMode: "remote"
+				}, {
+					fieldLabel: "市",
+					labelWidth: 20,
+					itemId: "city",
+					xtype: "combo",
+					triggerAction: "all",
+					width: 185,
+					displayField: "name",
+					emptyText: "请选择...",
+					editable: false,
+					valueField: "id",
+					//获取数据集
+					store: Ext.create("School.store.area.AreaQuery"),
+					queryMode: "remote"
+				}, {
+					fieldLabel: "区",
+					labelWidth: 20,
+					itemId: "town",
+					xtype: "combo",
+					triggerAction: "all",
+					width: 185,
+					displayField: "name",
+					emptyText: "请选择...",
+					editable: false,
+					valueField: "id",
+					//获取数据集
+					store: Ext.create("School.store.area.AreaQuery"),
+					queryMode: "remote"
+				}]
+			}, {
+				xtype: 'form',
+				layout: 'hbox',
+				items: [{
+					xtype: "label",
+					margin: "10 10 10 10",
+					text: "",
+					itemId: 'schoolCountOfTeacher',
+					style: {
+						color: "red",
+						fontWeight: "800"
+					}
+				}, {
+					xtype: "label",
+					margin: "10 10 10 10",
+					text: "",
+					itemId: 'loginCountOfTeacher',
+					style: {
+						color: "red",
+						fontWeight: "800"
+					}
+				}, {
+					xtype: "label",
+					margin: "10 10 10 10",
+					text: "",
+					itemId: 'NotLoginCountOfTeacher',
+					style: {
+						color: "red",
+						fontWeight: "800"
+					}
+				}, {
+					xtype: "label",
+					margin: "10 10 10 10",
+					text: "",
+					itemId: 'schoolCountOfParent',
+					style: {
+						color: "red",
+						fontWeight: "800"
+					}
+				}, {
+					xtype: "label",
+					margin: "10 10 10 10",
+					text: "",
+					itemId: 'loginCountOfParent',
+					style: {
+						color: "red",
+						fontWeight: "800"
+					}
+				}, {
+					xtype: "label",
+					margin: "10 10 10 10",
+					text: "",
+					itemId: 'NotLoginCountOfParent',
+					style: {
+						color: "red",
+						fontWeight: "800"
+					}					
+				}]
+			}]
+		}, {  
+      xtype: 'pagingtoolbar',  
+      store: this.getStore(),   // same store GridPanel is using  
+      dock: 'bottom',  
+      displayInfo: true  
+		}];
+
+		this.callParent(arguments);
+	},
+	forceFit: true//强制充满表格
+});
